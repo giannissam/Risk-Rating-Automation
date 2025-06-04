@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Rating Automation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Inter font and default element styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to the top */
+            min-height: 100vh;
+            background-color: #ffffff; /* Changed to white */
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: 100%;
+            max-width: 900px; /* Increased max-width to accommodate new table */
+        }
+        table {
+            border-collapse: separate; /* Allows border-radius on cells */
+            border-spacing: 0;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem; /* rounded-xl */
+            overflow: hidden; /* Ensures child elements respect border-radius */
+            table-layout: auto; /* Explicitly set table-layout to auto for content-based sizing */
+            width: 100%; /* Ensure tables take full width within their container */
+        }
+        th, td {
+            padding: 0.75rem 1rem; /* Default padding for most cells */
+            text-align: center;
+            border: 1px solid #e2e8f0; /* border-gray-200 */
+            transition: background-color 0.2s ease-in-out;
+            border-radius: 0.5rem; /* rounded-lg for individual cells */
+            cursor: pointer; /* Indicate clickable cells */
+            vertical-align: middle; /* Changed to middle to center text vertically */
+            font-size: 0.875rem; /* Default font size for table cells (text-sm) */
+            line-height: 1.2; /* Adjust line height for better multi-line text display */
+        }
+        /* Specific padding for Category, SubCategory and Description columns to make them narrower */
+        .category-table-col-narrow th,
+        .category-table-col-narrow td {
+            padding-left: 0.125rem; /* Even narrower padding */
+            padding-right: 0.125rem; /* Even narrower padding */
+        }
+
+        /* Specific background colors for columns */
+        .col-category {
+            background-color: #f3f4f6; /* Tailwind's bg-gray-100 */
+        }
+        .col-subcategory {
+            background-color: #f3f4f6; /* Tailwind's bg-gray-100 */
+        }
+        .col-description {
+            background-color: #d1fae5; /* Tailwind's bg-green-100 */
+        }
+
+        /* Darker grey for the header row of category table */
+        #categoryTable thead th {
+            background-color: #e2e8f0; /* Tailwind's bg-gray-200 */
+        }
+
+        th {
+            font-weight: 600; /* font-semibold */
+            color: #2d3748; /* text-gray-800 */
+        }
+        /* Specific styling for the score display cell */
+        #totalScoreCell, #totalImpactCell, #riskRatingDisplay {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700; /* font-bold */
+            color: #1a202c; /* text-gray-900 */
+            background-color: #e0f2fe; /* bg-blue-100 */
+            border-radius: 0.75rem; /* rounded-xl */
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        #riskRatingDisplay {
+            background-color: #dbeafe; /* bg-blue-200 */
+        }
+
+        /* Heatmap specific styles */
+        #heatmapContainer {
+            display: grid;
+            grid-template-columns: auto repeat(5, 1fr); /* Labels + 5 columns for Impact */
+            grid-template-rows: auto repeat(5, 1fr); /* Labels + 5 rows for Likelihood */
+            gap: 1px; /* Small gap between cells */
+            background-color: #e2e8f0; /* Light grey background for grid lines */
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: fit-content; /* Adjust width to content */
+            margin: 0 auto; /* Center the heatmap */
+        }
+        .heatmap-cell, .heatmap-label {
+            padding: 0.3rem 0.75rem; /* Adjusted padding for shorter and wider cells */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem; /* Slightly smaller font for heatmap cells */
+            font-weight: 500;
+            color: #4a5568; /* text-gray-700 */
+            border: 1px solid #e2e8f0;
+        }
+        .heatmap-label {
+            background-color: #edf2f7; /* bg-gray-100 */
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .heatmap-label.x-axis {
+            writing-mode: horizontal-tb; /* Ensure horizontal text */
+            text-align: center;
+        }
+        .heatmap-label.y-axis {
+            writing-mode: vertical-lr; /* Rotate text for Y-axis labels */
+            text-orientation: mixed;
+            text-align: center;
+            transform: rotate(180deg); /* Rotate text upright */
+            white-space: nowrap; /* Prevent wrapping */
+            padding: 0.3rem 0.15rem; /* Adjusted padding for vertical text */
+        }
+
+        /* Heatmap color classes - UPDATED AND NEW */
+        /* Increased specificity for these rules */
+        div.heatmap-cell.risk-blue { background-color: #bfdbfe; } /* Tailwind blue-200 */
+        div.heatmap-cell.risk-lightblue { background-color: #93c5fd; } /* Tailwind blue-300 */
+        div.heatmap-cell.risk-lightgreen { background-color: #d4edda; } /* From previous risk-very-low */
+        div.heatmap-cell.risk-green { background-color: #a7f3d0; } /* A new green shade, Tailwind green-300 */
+        div.heatmap-cell.risk-yellow { background-color: #ffeeba; } /* From previous risk-moderate */
+        div.heatmap-cell.risk-orange { background-color: #fdba74; } /* Tailwind orange-300 */
+
+        /* Keep .heatmap-cell.highlighted as it is for the border/shadow */
+        .heatmap-cell.highlighted {
+            border: 3px solid #3182ce; /* Blue border for highlighted cell */
+            box-shadow: 0 0 0 2px #63b3ed; /* Outer glow */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+            th, td, .heatmap-cell, .heatmap-label {
+                padding: 0.3rem 0.5rem; /* Adjusted padding for mobile */
+                font-size: 0.65rem; /* Even smaller font size for mobile */
+            }
+            #totalScoreCell, #totalImpactCell, #riskRatingDisplay {
+                font-size: 0.8rem; /* text-lg */
+                padding: 0.5rem;
+            }
+            .heatmap-label.y-axis {
+                padding: 0.3rem 0.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Likelihood & Risk Assessment</h1>
+
+        <div id="totalScoreCell" class="text-center">
+            Current Likelihood Score: <span id="totalScore">0</span>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Likelihood Category Table</h2>
+        <table id="categoryTable" class="divide-y divide-gray-200 rounded-xl">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl category-table-col-narrow col-category">Category</th>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider category-table-col-narrow col-subcategory">SubCategory</th>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider category-table-col-narrow col-description">Description</th>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">1</th>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">2</th>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">3</th>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">4</th>
+                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tr-xl">5</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr data-row="1">
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-category" rowspan="2">Intent</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Historical Targeting</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-description">Who/what has the threat targeted during past activity?</td>
+                    <td class="category-cell bg-white" data-value="1">Threat exclusively targets other business verticals and/or systems organization does not use</td>
+                    <td class="category-cell bg-white" data-value="2">Threat not yet seen within finance vertical, but could have impacts</td>
+                    <td class="category-cell bg-white" data-value="3">Threat has been seen in the finance vertical, but is not exclusive to it. Threat is opportunistic by nature.</td>
+                    <td class="category-cell bg-white" data-value="4">Threat directly targets organization competitors and similar organizations.</td>
+                    <td class="category-cell bg-white" data-value="5">Threat has been previously detected at organization.</td>
+                </tr>
+                <tr data-row="2">
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Motivation</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-description">Does the malware allow threat actor to access critical data or easily monetizable data?</td>
+                    <td class="category-cell bg-white" data-value="1">No reward</td>
+                    <td class="category-cell bg-white" data-value="2">Low reward, such as strongly encrypted data, data lacking correlational context, or low privileged access to user systems.</td>
+                    <td class="category-cell bg-white" data-value="3">Possible reward, such as login credentials to low privileged users of applications with sensitive data.</td>
+                    <td class="category-cell bg-white" data-value="4">Potentially high rewared, such as admin credentials to critical assets or access to obfuscated sensistive data.</td>
+                    <td class="category-cell bg-white" data-value="5">High reward, such as direct access to critical or highly monetizable data.</td>
+                </tr>
+                <tr data-row="3">
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-category" rowspan="2">Capability</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Detection & Prevention/ Anti-Detection</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">How likely will the threat be detected/prevented?</td>
+                    <td class="category-cell bg-white" data-value="1">Automated active detection and prevention; threat makes no attempt to evade detection.</td>
+                    <td class="category-cell bg-white" data-value="2">Automated active detection, manual prevention; threat utilizes some evasion techniques.</td>
+                    <td class="category-cell bg-white" data-value="3">Manual detection and prevention capabilities in place; threat utilizes living off the land or other difficult to detect techniques.</td>
+                    <td class="category-cell bg-white" data-value="4">Unlikely to be detected or prevented; combination of multiple evasion techniques without zero day.</td>
+                    <td class="category-cell bg-white" data-value="5">No first layer detection/prevention; zero day vulnerability utilized.</td>
+                </tr>
+                <tr data-row="4">
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Threat Actor Capability</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-description">How capable does the threat need to be to complete the attack?</td>
+                    <td class="category-cell bg-white" data-value="1">Multi-faceted operation requiring coordinated elite-level capability.</td>
+                    <td class="category-cell bg-white" data-value="2">High difficulty requiring significant manual threat interaction.</td>
+                    <td class="category-cell bg-white" data-value="3">Moderate difficulty requiring some manual threat interaction.</td>
+                    <td class="category-cell bg-white" data-value="4">Moderate ease requiring little to no manual threat interaction.</td>
+                    <td class="category-cell bg-white" data-value="5">Automated tools available.</td>
+                </tr>
+                <tr data-row="5">
+                    <td class="px-6 py-4 font-medium text-gray-900 rounded-bl-xl col-category" rowspan="2">Opportunity</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-subcategory">Vulnerability Exposure</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">What is the exposure of verified vulnerability(ies) the threat is known to exploit?</td>
+                    <td class="category-cell bg-white" data-value="1">Organization does not and has never had the vulnerability(ies) nor any system/process potentially affected.</td>
+                    <td class="category-cell bg-white" data-value="2">Organization has remediated systems with potential vulnerability(ies); business processes established to prevent exploitation. Organization users are hardened against social engineering vectors.</td>
+                    <td class="category-cell bg-white" data-value="3">Small number of vulnerable systems on the internal network; social engineering vectors are hidden from potential attackers.</td>
+                    <td class="category-cell bg-white" data-value="4">Large number of vulnerable systems on the internal network; small number of vulnerable systems on the organization perimeter; social engineering vectors are publically accessible.</td>
+                    <td class="category-cell bg-white" data-value="5">Large number of (or high traffic systems) vulnerable on the organization perimeter; social engineering vectors are well known and available to the public.</td>
+                </tr>
+                <tr data-row="6">
+                    <td class="px-6 py-4 font-medium text-gray-900 col-subcategory">Threat Attack Vector</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">What type of access does the threat require to be successful?</td>
+                    <td class="category-cell bg-white" data-value="1">Physical access to data center or network required.</td>
+                    <td class="category-cell bg-white" data-value="2">Remote access to ADP systems required.</td>
+                    <td class="category-cell bg-white" data-value="3">Social engineering required to gain access.</td>
+                    <td class="category-cell bg-white" data-value="4">Phishing or drive by download.</td>
+                    <td class="category-cell bg-white" data-value="5">Self propagation techniques in use; no access required.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4 mt-8">Likelihood Score Table</h2>
+        <table id="scoreTable" class="divide-y divide-gray-200 rounded-xl">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl rounded-tr-xl" colspan="6">Score Correlation</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Score</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-C">Score Range 6-9</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-D">Score Range 10-14</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-E">Score Range 15-19</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-F">Score Range 20-24</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-G">Score Range 25-30</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Estimative Language</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-C">Remote</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-D">Unlikely</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-E">Possible</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-F">Likely</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-G">Highly Probable</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 rounded-bl-xl">Percentage Likelihood</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-C">0-3%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-D">4-15%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-E">16-40%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-F">41-70%</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-G rounded-br-xl">71-100%</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="totalImpactCell" class="text-center">
+            Current Impact Score: <span id="totalImpact">0</span>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Impact Table</h2>
+        <table id="impactTable" class="divide-y divide-gray-200 rounded-xl">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl col-category">Impact Metric</th>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider col-description">Description</th>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">1</th>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">2</th>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">3</th>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">4</th>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">5</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr data-row="impact-1">
+                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Confidentiality</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Unauthorized disclosure of information.</td>
+                    <td class="impact-cell bg-white" data-value="1">Minimal data exposure, no sensitive data.</td>
+                    <td class="impact-cell bg-white" data-value="2">Minor sensitive data exposure, limited impact.</td>
+                    <td class="impact-cell bg-white" data-value="3">Significant sensitive data exposure, moderate impact.</td>
+                    <td class="impact-cell bg-white" data-value="4">Major sensitive data exposure, severe impact.</td>
+                    <td class="impact-cell bg-white" data-value="5">Critical data breach, extreme impact.</td>
+                </tr>
+                <tr data-row="impact-2">
+                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Integrity</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Unauthorized modification or destruction of information.</td>
+                    <td class="impact-cell bg-white" data-value="1">Minor data alteration, easily recoverable.</td>
+                    <td class="impact-cell bg-white" data-value="2">Limited data alteration, some manual recovery.</td>
+                    <td class="impact-cell bg-white" data-value="3">Significant data corruption, moderate recovery effort.</td>
+                    <td class="impact-cell bg-white" data-value="4">Major data corruption, difficult recovery.</td>
+                    <td class="impact-cell bg-white" data-value="5">Critical data integrity loss, severe impact.</td>
+                </tr>
+                <tr data-row="impact-3">
+                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Availability</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Disruption of access to information or systems.</td>
+                    <td class="impact-cell bg-white" data-value="1">Brief, localized service interruption.</td>
+                    <td class="impact-cell bg-white" data-value="2">Minor service interruption, limited users affected.</td>
+                    <td class="impact-cell bg-white" data-value="3">Moderate service interruption, significant user impact.</td>
+                    <td class="impact-cell bg-white" data-value="4">Major service outage, critical systems affected.</td>
+                    <td class="impact-cell bg-white" data-value="5">Complete system failure, prolonged outage.</td>
+                </tr>
+                <tr data-row="impact-4">
+                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Financial</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Monetary loss or impact on revenue.</td>
+                    <td class="impact-cell bg-white" data-value="1">Negligible financial loss.</td>
+                    <td class="impact-cell bg-white" data-value="2">Minor financial loss, easily absorbed.</td>
+                    <td class="impact-cell bg-white" data-value="3">Moderate financial loss, impacting department budget.</td>
+                    <td class="impact-cell bg-white" data-value="4">Significant financial loss, impacting company profits.</td>
+                    <td class="impact-cell bg-white" data-value="5">Severe financial loss, existential threat.</td>
+                </tr>
+                <tr data-row="impact-5">
+                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Reputation</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Damage to public image or trust.</td>
+                    <td class="impact-cell bg-white" data-value="1">No noticeable reputational damage.</td>
+                    <td class="impact-cell bg-white" data-value="2">Minor negative publicity, quickly forgotten.</td>
+                    <td class="impact-cell bg-white" data-value="3">Moderate negative publicity, short-term trust erosion.</td>
+                    <td class="impact-cell bg-white" data-value="4">Significant reputational damage, long-term trust issues.</td>
+                    <td class="impact-cell bg-white" data-value="5">Catastrophic reputational damage, irreversible trust loss.</td>
+                </tr>
+                <tr data-row="impact-6">
+                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Non-compliance</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Violation of laws, regulations, or policies.</td>
+                    <td class="impact-cell bg-white" data-value="1">Minor policy violation, no legal repercussions.</td>
+                    <td class="impact-cell bg-white" data-value="2">Low regulatory violation, minor fines possible.</td>
+                    <td class="impact-cell bg-white" data-value="3">Moderate regulatory violation, significant fines possible.</td>
+                    <td class="impact-cell bg-white" data-value="4">Major legal violation, severe fines or legal action.</td>
+                    <td class="impact-cell bg-white" data-value="5">Critical legal violation, business-ending penalties.</td>
+                </tr>
+                <tr data-row="impact-7">
+                    <td class="px-6 py-4 font-medium text-gray-900 rounded-bl-xl col-category">Privacy</td>
+                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Unauthorized access to or misuse of personal data.</td>
+                    <td class="impact-cell bg-white" data-value="1">No personal data involved.</td>
+                    <td class="impact-cell bg-white" data-value="2">Minor personal data exposure, non-identifiable.</td>
+                    <td class="impact-cell bg-white" data-value="3">Moderate personal data exposure, some identifiable data.</td>
+                    <td class="impact-cell bg-white" data-value="4">Significant personal data exposure, highly identifiable.</td>
+                    <td class="impact-cell bg-white" data-value="5">Massive personal data breach, severe privacy impact.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4 mt-8">Impact Score Table</h2>
+        <table id="impactScoreTable" class="divide-y divide-gray-200 rounded-xl">
+            <thead>
+                <tr>
+                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl rounded-tr-xl" colspan="6">Impact Score Correlation</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Score</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-A">1-7</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-B">8-14</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-C">15-21</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-D">22-28</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-E">29-35</td>
+                </tr>
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Impact Level</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-A">Insignificant</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-B">Minor</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-C">Material</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-D">Major</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-E">Extreme</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Risk Matrix Heatmap</h2>
+        <div id="heatmapContainer">
+            <div class="heatmap-label"></div>
+            <div class="heatmap-label x-axis">Insignificant</div>
+            <div class="heatmap-label x-axis">Minor</div>
+            <div class="heatmap-label x-axis">Material</div>
+            <div class="heatmap-label x-axis">Major</div>
+            <div class="heatmap-label x-axis">Extreme</div>
+
+            <div class="heatmap-label y-axis">Highly Probable</div>
+            <div id="cell-hp-insignificant" class="heatmap-cell risk-lightgreen"></div>
+            <div id="cell-hp-minor" class="heatmap-cell risk-lightgreen"></div>
+            <div id="cell-hp-material" class="heatmap-cell risk-yellow"></div>
+            <div id="cell-hp-major" class="heatmap-cell risk-orange"></div>
+            <div id="cell-hp-extreme" class="heatmap-cell risk-orange"></div>
+
+            <div class="heatmap-label y-axis">Likely</div>
+            <div id="cell-l-insignificant" class="heatmap-cell risk-green"></div>
+            <div id="cell-l-minor" class="heatmap-cell risk-lightgreen"></div>
+            <div id="cell-l-material" class="heatmap-cell risk-yellow"></div>
+            <div id="cell-l-major" class="heatmap-cell risk-orange"></div>
+            <div id="cell-l-extreme" class="heatmap-cell risk-orange"></div>
+
+            <div class="heatmap-label y-axis">Possible</div>
+            <div id="cell-p-insignificant" class="heatmap-cell risk-lightblue"></div>
+            <div id="cell-p-minor" class="heatmap-cell risk-green"></div>
+            <div id="cell-p-material" class="heatmap-cell risk-lightgreen"></div>
+            <div id="cell-p-major" class="heatmap-cell risk-yellow"></div>
+            <div id="cell-p-extreme" class="heatmap-cell risk-orange"></div>
+
+            <div class="heatmap-label y-axis">Unlikely</div>
+            <div id="cell-u-insignificant" class="heatmap-cell risk-lightblue"></div>
+            <div id="cell-u-minor" class="heatmap-cell risk-green"></div>
+            <div id="cell-u-material" class="heatmap-cell risk-green"></div>
+            <div id="cell-u-major" class="heatmap-cell risk-lightgreen"></div>
+            <div id="cell-u-extreme" class="heatmap-cell risk-yellow"></div>
+
+            <div class="heatmap-label y-axis">Remote</div>
+            <div id="cell-r-insignificant" class="heatmap-cell risk-lightblue"></div>
+            <div id="cell-r-minor" class="heatmap-cell risk-lightblue"></div>
+            <div id="cell-r-material" class="heatmap-cell risk-green"></div>
+            <div id="cell-r-major" class="heatmap-cell risk-lightgreen"></div>
+            <div id="cell-r-extreme" class="heatmap-cell risk-yellow"></div>
+        </div>
+
+        <div id="riskRatingDisplay" class="text-center mt-6">
+            Calculated Risk Rating: <span id="riskRatingValue">N/A</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
+            <button id="generateLinkBtn" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition duration-200">
+                Generate Shareable Link
+            </button>
+            <input type="text" id="shareableLinkInput" readonly class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 bg-gray-100 text-gray-700 text-sm">
+            <button id="copyLinkBtn" class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition duration-200">
+                Copy Link
+            </button>
+            <button id="exportTxtBtn" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition duration-200">
+                Export to TXT
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to manage the scores and selected cells
+        let totalLikelihoodScore = 0;
+        let totalImpactScore = 0;
+
+        // Stores the currently selected cell element for each row in the Likelihood table.
+        // Key: data-row attribute value, Value: the selected cell's DOM element.
+        const selectedLikelihoodCellsPerRow = {};
+        // Stores the currently selected cell element for each row in the Impact table.
+        // Key: data-row attribute value, Value: the selected cell's DOM element.
+        const selectedImpactCellsPerRow = {};
+
+        // Get references to DOM elements
+        let totalLikelihoodScoreDisplay;
+        let totalImpactScoreDisplay;
+        let riskRatingDisplay;
+        let categoryTable;
+        let impactTable;
+        let scoreTable; // Likelihood Score Table
+        let impactScoreTable; // Impact Score Table
+        let heatmapContainer;
+        let generateLinkBtn;
+        let shareableLinkInput;
+        let copyLinkBtn;
+        let exportTxtBtn; // New button for TXT export
+
+
+        // Define the Risk Matrix (Likelihood vs. Impact)
+        // Rows: Highly Probable, Likely, Possible, Unlikely, Remote (indexed 0-4)
+        // Columns: Insignificant, Minor, Material, Major, Extreme (indexed 0-4)
+        const riskMatrix = [
+            // Insignificant, Minor, Material, Major, Extreme (Impact)
+            ['Moderate', 'Moderate', 'High', 'Very High', 'Very High'], // Highly Probable (Likelihood index 0) - was lightgreen, lightgreen, yellow, orange, orange
+            ['Low', 'Moderate', 'High', 'Very High', 'Very High'],      // Likely (Likelihood index 1) - was green, lightgreen, yellow, orange, orange
+            ['Very Low', 'Low', 'Moderate', 'High', 'Very High'],   // Possible (Likelihood index 2) - was lightblue, green, lightgreen, yellow, orange
+            ['Very Low', 'Low', 'Low', 'Moderate', 'High'],    // Unlikely (Likelihood index 3) - was lightblue, green, green, lightgreen, yellow
+            ['Very Low', 'Very Low', 'Low', 'Moderate', 'High'] // Remote (Likelihood index 4) - was lightblue, lightblue, green, lightgreen, yellow
+        ];
+
+        // Mappings for scores to qualitative labels and heatmap indices
+        const likelihoodLevels = [
+            { label: 'Highly Probable', scoreRange: [25, 30], idPrefix: 'hp' },
+            { label: 'Likely', scoreRange: [20, 24], idPrefix: 'l' },
+            { label: 'Possible', scoreRange: [15, 19], idPrefix: 'p' },
+            { label: 'Unlikely', scoreRange: [10, 14], idPrefix: 'u' },
+            { label: 'Remote', scoreRange: [6, 9], idPrefix: 'r' }
+        ];
+
+        const impactLevels = [
+            { label: 'Insignificant', scoreRange: [1, 7], idPrefix: 'insignificant' }, // 7 impact metrics, min score 1 each
+            { label: 'Minor', scoreRange: [8, 14], idPrefix: 'minor' },
+            { label: 'Material', scoreRange: [15, 21], idPrefix: 'material' },
+            { label: 'Major', scoreRange: [22, 28], idPrefix: 'major' },
+            { label: 'Extreme', scoreRange: [29, 35], idPrefix: 'extreme' } // 7 impact metrics, max score 5 each = 35
+        ];
+
+
+        /**
+         * Updates the total likelihood score displayed on the page.
+         */
+        function updateLikelihoodScoreDisplay() {
+            totalLikelihoodScoreDisplay.textContent = totalLikelihoodScore;
+            updateHeatmapAndRiskRating();
+        }
+
+        /**
+         * Updates the total impact score displayed on the page.
+         */
+        function updateImpactScoreDisplay() {
+            totalImpactScoreDisplay.textContent = totalImpactScore;
+            updateHeatmapAndRiskRating();
+            updateImpactScoreTableHighlight(); // Call the new function for impact score table
+        }
+
+        /**
+         * Updates the highlighting of columns in the Likelihood Score table based on the current total likelihood score.
+         */
+        function updateScoreTableHighlight() {
+            // Remove all existing yellow highlights from score table columns
+            const allScoreCols = scoreTable.querySelectorAll('[class*="score-col-"]');
+            allScoreCols.forEach(col => {
+                col.classList.remove('bg-yellow-300');
+                col.classList.add('bg-white'); // Ensure it reverts to white
+            });
+
+            // Determine which column to highlight based on the score ranges
+            let columnToHighlightClass = '';
+            if (totalLikelihoodScore >= 6 && totalLikelihoodScore < 10) {
+                columnToHighlightClass = 'score-col-C';
+            } else if (totalLikelihoodScore >= 10 && totalLikelihoodScore < 15) {
+                columnToHighlightClass = 'score-col-D';
+            } else if (totalLikelihoodScore >= 15 && totalLikelihoodScore < 20) {
+                columnToHighlightClass = 'score-col-E';
+            } else if (totalLikelihoodScore >= 20 && totalLikelihoodScore < 25) {
+                columnToHighlightClass = 'score-col-F';
+            } else if (totalLikelihoodScore >= 25 && totalLikelihoodScore <= 30) {
+                columnToHighlightClass = 'score-col-G';
+            }
+
+            // Apply highlighting to the determined column
+            if (columnToHighlightClass) {
+                const cellsToHighlight = scoreTable.querySelectorAll(`.${columnToHighlightClass}`);
+                cellsToHighlight.forEach(cell => {
+                    cell.classList.add('bg-yellow-300');
+                    cell.classList.remove('bg-white');
+                });
+            }
+        }
+
+        /**
+         * Updates the highlighting of columns in the Impact Score table based on the current total impact score.
+         */
+        function updateImpactScoreTableHighlight() {
+            // Ensure impactScoreTable is initialized
+            if (!impactScoreTable) {
+                console.error("impactScoreTable is null. Cannot update impact score table.");
+                return;
+            }
+
+            // Remove all existing yellow highlights from impact score table columns
+            const allImpactScoreCols = impactScoreTable.querySelectorAll('[class*="impact-score-col-"]');
+            allImpactScoreCols.forEach(col => {
+                col.classList.remove('bg-yellow-300');
+                col.classList.add('bg-white'); // Ensure it reverts to white
+            });
+
+            // Determine which column to highlight based on the score ranges
+            let columnToHighlightClass = '';
+            if (totalImpactScore >= 1 && totalImpactScore <= 7) {
+                columnToHighlightClass = 'impact-score-col-A';
+            } else if (totalImpactScore >= 8 && totalImpactScore <= 14) {
+                columnToHighlightClass = 'impact-score-col-B';
+            } else if (totalImpactScore >= 15 && totalImpactScore <= 21) {
+                columnToHighlightClass = 'impact-score-col-C';
+            } else if (totalImpactScore >= 22 && totalImpactScore <= 28) {
+                columnToHighlightClass = 'impact-score-col-D';
+            } else if (totalImpactScore >= 29 && totalImpactScore <= 35) {
+                columnToHighlightClass = 'impact-score-col-E';
+            }
+
+            // Apply highlighting to the determined column
+            if (columnToHighlightClass) {
+                const cellsToHighlight = impactScoreTable.querySelectorAll(`.${columnToHighlightClass}`);
+                cellsToHighlight.forEach(cell => {
+                    cell.classList.add('bg-yellow-300');
+                    cell.classList.remove('bg-white');
+                });
+            }
+        }
+
+        /**
+         * Initializes event listeners for the likelihood category table cells.
+         * Handles cell selection/deselection and updates the score.
+         */
+        function initializeCategoryTable() {
+            const categoryCells = categoryTable.querySelectorAll('.category-cell');
+
+            categoryCells.forEach(cell => {
+                cell.addEventListener('click', () => {
+                    const rowElement = cell.closest('tr');
+                    const rowId = rowElement.dataset.row;
+                    const cellValue = parseInt(cell.dataset.value);
+
+                    const isSelected = cell.classList.contains('bg-yellow-300');
+
+                    if (isSelected) {
+                        cell.classList.remove('bg-yellow-300');
+                        cell.classList.add('bg-white');
+                        totalLikelihoodScore -= cellValue;
+                        delete selectedLikelihoodCellsPerRow[rowId];
+                    } else {
+                        if (selectedLikelihoodCellsPerRow[rowId]) {
+                            const previouslySelectedCell = selectedLikelihoodCellsPerRow[rowId];
+                            const previouslySelectedValue = parseInt(previouslySelectedCell.dataset.value);
+                            previouslySelectedCell.classList.remove('bg-yellow-300');
+                            previouslySelectedCell.classList.add('bg-white');
+                            totalLikelihoodScore -= previouslySelectedValue;
+                        }
+                        cell.classList.add('bg-yellow-300');
+                        cell.classList.remove('bg-white');
+                        totalLikelihoodScore += cellValue;
+                        selectedLikelihoodCellsPerRow[rowId] = cell;
+                    }
+                    updateLikelihoodScoreDisplay();
+                    updateScoreTableHighlight();
+                });
+            });
+        }
+
+        /**
+         * Initializes event listeners for the impact table cells.
+         * Handles cell selection/deselection and updates the score.
+         */
+        function initializeImpactTable() {
+            const impactCells = impactTable.querySelectorAll('.impact-cell');
+
+            impactCells.forEach(cell => {
+                cell.addEventListener('click', () => {
+                    const rowElement = cell.closest('tr');
+                    const rowId = rowElement.dataset.row;
+                    const cellValue = parseInt(cell.dataset.value);
+
+                    const isSelected = cell.classList.contains('bg-yellow-300');
+
+                    if (isSelected) {
+                        cell.classList.remove('bg-yellow-300');
+                        cell.classList.add('bg-white');
+                        totalImpactScore -= cellValue;
+                        delete selectedImpactCellsPerRow[rowId];
+                    } else {
+                        if (selectedImpactCellsPerRow[rowId]) {
+                            const previouslySelectedCell = selectedImpactCellsPerRow[rowId];
+                            const previouslySelectedValue = parseInt(previouslySelectedCell.dataset.value);
+                            previouslySelectedCell.classList.remove('bg-yellow-300');
+                            previouslySelectedCell.classList.add('bg-white');
+                            totalImpactScore -= previouslySelectedValue;
+                        }
+                        cell.classList.add('bg-yellow-300');
+                        cell.classList.remove('bg-white');
+                        totalImpactScore += cellValue;
+                        selectedImpactCellsPerRow[rowId] = cell;
+                    }
+                    updateImpactScoreDisplay();
+                });
+            });
+        }
+
+        /**
+         * Determines the likelihood level based on the total likelihood score.
+         * @param {number} score - The total likelihood score.
+         * @returns {object|null} The likelihood level object or null if no match.
+         */
+        function getLikelihoodLevel(score) {
+            // Reverse order to match heatmap Y-axis (Highly Probable at top)
+            for (let i = likelihoodLevels.length - 1; i >= 0; i--) {
+                const level = likelihoodLevels[i];
+                if (score >= level.scoreRange[0] && score <= level.scoreRange[1]) {
+                    return { level: level.label, index: i, idPrefix: level.idPrefix };
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Determines the impact level based on the total impact score.
+         * @param {number} score - The total impact score.
+         * @returns {object|null} The impact level object or null if no match.
+         */
+        function getImpactLevel(score) {
+            for (let i = 0; i < impactLevels.length; i++) {
+                const level = impactLevels[i];
+                if (score >= level.scoreRange[0] && score <= level.scoreRange[1]) {
+                    return { level: level.label, index: i, idPrefix: level.idPrefix };
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Updates the heatmap visualization and displays the calculated risk rating.
+         */
+        function updateHeatmapAndRiskRating() {
+            // Clear previous highlight
+            const previouslyHighlighted = heatmapContainer.querySelector('.heatmap-cell.highlighted');
+            if (previouslyHighlighted) {
+                previouslyHighlighted.classList.remove('highlighted');
+            }
+
+            const currentLikelihood = getLikelihoodLevel(totalLikelihoodScore);
+            const currentImpact = getImpactLevel(totalImpactScore);
+
+            if (currentLikelihood && currentImpact) {
+                // Likelihood index is used directly for riskMatrix lookup
+                const risk = riskMatrix[currentLikelihood.index][currentImpact.index];
+                riskRatingDisplay.textContent = risk;
+
+                // Highlight the corresponding cell in the heatmap
+                const cellId = `cell-${currentLikelihood.idPrefix}-${currentImpact.idPrefix}`;
+                const cellToHighlight = document.getElementById(cellId);
+                if (cellToHighlight) {
+                    cellToHighlight.classList.add('highlighted');
+                }
+            } else {
+                riskRatingDisplay.textContent = 'N/A';
+            }
+        }
+
+        /**
+         * Saves the current selections to the URL hash for sharing.
+         */
+        function saveSelectionsToUrl() {
+            const likelihoodSelections = [];
+            for (const rowId in selectedLikelihoodCellsPerRow) {
+                likelihoodSelections.push({
+                    rowId: rowId,
+                    value: parseInt(selectedLikelihoodCellsPerRow[rowId].dataset.value)
+                });
+            }
+
+            const impactSelections = [];
+            for (const rowId in selectedImpactCellsPerRow) {
+                impactSelections.push({
+                    rowId: rowId,
+                    value: parseInt(selectedImpactCellsPerRow[rowId].dataset.value)
+                });
+            }
+
+            const allSelections = {
+                l: likelihoodSelections,
+                i: impactSelections
+            };
+
+            const encodedData = encodeURIComponent(JSON.stringify(allSelections));
+            const shareableUrl = window.location.origin + window.location.pathname + '#data=' + encodedData;
+            shareableLinkInput.value = shareableUrl;
+        }
+
+        /**
+         * Loads selections from the URL hash when the page loads.
+         */
+        function loadSelectionsFromUrl() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#data=')) {
+                try {
+                    const encodedData = hash.substring(6); // Remove '#data='
+                    const decodedData = decodeURIComponent(encodedData);
+                    const parsedSelections = JSON.parse(decodedData);
+
+                    // Clear existing selections and scores
+                    totalLikelihoodScore = 0;
+                    totalImpactScore = 0;
+                    for (const key in selectedLikelihoodCellsPerRow) {
+                        const cell = selectedLikelihoodCellsPerRow[key];
+                        if (cell) cell.classList.remove('bg-yellow-300');
+                        delete selectedLikelihoodCellsPerRow[key];
+                    }
+                    for (const key in selectedImpactCellsPerRow) {
+                        const cell = selectedImpactCellsPerRow[key];
+                        if (cell) cell.classList.remove('bg-yellow-300');
+                        delete selectedImpactCellsPerRow[key];
+                    }
+
+                    // Apply likelihood selections
+                    if (parsedSelections.l && Array.isArray(parsedSelections.l)) {
+                        parsedSelections.l.forEach(selection => {
+                            const cell = categoryTable.querySelector(`tr[data-row="${selection.rowId}"] .category-cell[data-value="${selection.value}"]`);
+                            if (cell) {
+                                cell.classList.add('bg-yellow-300');
+                                selectedLikelihoodCellsPerRow[selection.rowId] = cell;
+                                totalLikelihoodScore += selection.value;
+                            }
+                        });
+                    }
+
+                    // Apply impact selections
+                    if (parsedSelections.i && Array.isArray(parsedSelections.i)) {
+                        parsedSelections.i.forEach(selection => {
+                            const cell = impactTable.querySelector(`tr[data-row="${selection.rowId}"] .impact-cell[data-value="${selection.value}"]`);
+                            if (cell) {
+                                cell.classList.add('bg-yellow-300');
+                                selectedImpactCellsPerRow[selection.rowId] = cell;
+                                totalImpactScore += selection.value;
+                            }
+                        });
+                    }
+
+                    // Update displays based on loaded scores
+                    updateLikelihoodScoreDisplay();
+                    updateImpactScoreDisplay();
+                    updateScoreTableHighlight();
+                    updateImpactScoreTableHighlight();
+
+                } catch (e) {
+                    console.error("Error parsing URL hash data:", e);
+                    // Optionally, show a user-friendly message
+                }
+            }
+        }
+
+        /**
+         * Exports the current selections and calculated risk to a TXT file.
+         */
+        function exportToTxt() {
+            let reportContent = "Risk Rating report\n";
+            reportContent += `Calculated Risk Rating: ${riskRatingDisplay.textContent}\n\n`;
+            reportContent += `Current Likelihood Score: ${totalLikelihoodScore}\n\n`;
+            reportContent += `Current Impact Score: ${totalImpactScore}\n\n`;
+
+            reportContent += "Likelihood Calculation:\n\n";
+
+            // Likelihood categories and their corresponding row data-rows
+            const likelihoodCategories = {
+                "Intent": ["1", "2"],
+                "Capability": ["3", "4"],
+                "Opportunity": ["5", "6"]
+            };
+
+            for (const category in likelihoodCategories) {
+                reportContent += `${category}:\n`;
+                likelihoodCategories[category].forEach(rowId => {
+                    const selectedCell = selectedLikelihoodCellsPerRow[rowId];
+                    const rowNumber = parseInt(rowId);
+                    let subCategoryElement;
+
+                    // Determine the correct child index for subcategory based on rowId parity
+                    if (rowNumber % 2 !== 0) { // Odd rowId (1, 3, 5)
+                        subCategoryElement = categoryTable.querySelector(`tr[data-row="${rowId}"] td:nth-child(2)`);
+                    } else { // Even rowId (2, 4, 6)
+                        subCategoryElement = categoryTable.querySelector(`tr[data-row="${rowId}"] td:nth-child(1)`);
+                    }
+
+                    const subCategoryName = subCategoryElement ? subCategoryElement.textContent.trim() : "N/A";
+
+                    if (selectedCell) {
+                        reportContent += `${subCategoryName} score: ${selectedCell.dataset.value}\n`;
+                        reportContent += `${selectedCell.textContent.trim()}\n\n`;
+                    } else {
+                        reportContent += `${subCategoryName} score: Not selected\n\n`;
+                    }
+                });
+            }
+
+            reportContent += "\nImpact Calculation:\n\n";
+
+            // Impact metrics and their corresponding row data-rows
+            const impactMetrics = {
+                "impact-1": "Confidentiality",
+                "impact-2": "Integrity",
+                "impact-3": "Availability",
+                "impact-4": "Financial",
+                "impact-5": "Reputation",
+                "impact-6": "Non-compliance",
+                "impact-7": "Privacy"
+            };
+
+            for (const rowId in impactMetrics) {
+                const selectedCell = selectedImpactCellsPerRow[rowId];
+                const metricName = impactMetrics[rowId];
+                if (selectedCell) {
+                    reportContent += `${metricName} score: ${selectedCell.dataset.value}\n`;
+                    reportContent += `${selectedCell.textContent.trim()}\n\n`;
+                } else {
+                    reportContent += `${metricName} score: Not selected\n\n`;
+                }
+            }
+
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'risk_report.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+
+        // Initialize all table functionalities and update displays on window load
+        window.onload = function() {
+            // Initialize DOM element variables
+            totalLikelihoodScoreDisplay = document.getElementById('totalScore');
+            totalImpactScoreDisplay = document.getElementById('totalImpact');
+            riskRatingDisplay = document.getElementById('riskRatingValue');
+            categoryTable = document.getElementById('categoryTable');
+            impactTable = document.getElementById('impactTable');
+            scoreTable = document.getElementById('scoreTable');
+            impactScoreTable = document.getElementById('impactScoreTable');
+            heatmapContainer = document.getElementById('heatmapContainer');
+            generateLinkBtn = document.getElementById('generateLinkBtn');
+            shareableLinkInput = document.getElementById('shareableLinkInput');
+            copyLinkBtn = document.getElementById('copyLinkBtn');
+            exportTxtBtn = document.getElementById('exportTxtBtn'); // Get reference to the new button
+
+            // Add event listeners for new buttons
+            generateLinkBtn.addEventListener('click', saveSelectionsToUrl);
+            copyLinkBtn.addEventListener('click', () => {
+                shareableLinkInput.select();
+                document.execCommand('copy');
+                // Optional: Provide visual feedback that link is copied
+                // Using alert for simplicity, consider custom modal for better UX
+                // alert('Link copied to clipboard!');
+            });
+            exportTxtBtn.addEventListener('click', exportToTxt); // Add event listener for TXT export
+
+            initializeCategoryTable();
+            initializeImpactTable();
+
+            // Load selections from URL first, then update displays
+            loadSelectionsFromUrl();
+
+            // If no selections were loaded from URL, ensure displays are initialized to 0
+            if (totalLikelihoodScore === 0 && totalImpactScore === 0) {
+                updateLikelihoodScoreDisplay();
+                updateImpactScoreDisplay();
+                updateScoreTableHighlight();
+                updateImpactScoreTableHighlight();
+            }
+        };
+    </script>
+</body>
+</html>
