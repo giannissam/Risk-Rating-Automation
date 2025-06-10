@@ -893,30 +893,34 @@
                     const decodedData = decodeURIComponent(encodedData);
                     const parsedSelections = JSON.parse(decodedData);
 
-                    // Clear existing selections and scores
+                    // IMPORTANT: Clear all highlights from *all* cells first before processing new selections
+                    categoryTable.querySelectorAll('.category-cell').forEach(cell => {
+                        cell.classList.remove('bg-yellow-300');
+                        cell.classList.add('bg-white');
+                    });
+                    impactTable.querySelectorAll('.impact-cell').forEach(cell => {
+                        cell.classList.remove('bg-yellow-300');
+                        cell.classList.add('bg-white');
+                    });
+
+                    // Clear existing selections and scores in memory
                     totalLikelihoodScore = 0;
                     totalImpactScore = 0;
-                    for (const key in selectedLikelihoodCellsPerRow) {
-                        const cell = selectedLikelihoodCellsPerRow[key];
-                        if (cell) cell.classList.remove('bg-yellow-300');
-                        delete selectedLikelihoodCellsPerRow[key];
-                    }
-                    for (const key in selectedImpactCellsPerRow) {
-                        const cell = selectedImpactCellsPerRow[key];
-                        if (cell) cell.classList.remove('bg-yellow-300');
-                        delete selectedImpactCellsPerRow[key];
-                    }
+                    for (const key in selectedLikelihoodCellsPerRow) { delete selectedLikelihoodCellsPerRow[key]; }
+                    for (const key in selectedImpactCellsPerRow) { delete selectedImpactCellsPerRow[key]; }
+
 
                     // Apply likelihood selections
                     if (parsedSelections.l && Array.isArray(parsedSelections.l)) {
                         parsedSelections.l.forEach(encodedNum => {
                             const value = encodedNum % 10;
                             const rowNum = Math.floor(encodedNum / 10);
-                            const rowId = rowNum.toString(); // Convert back to string for data-row
+                            const rowId = rowNum.toString();
 
                             const cell = categoryTable.querySelector(`tr[data-row="${rowId}"] .category-cell[data-value="${value}"]`);
                             if (cell) {
-                                cell.classList.add('bg-yellow-300');
+                                cell.classList.remove('bg-white'); // Ensure white is removed
+                                cell.classList.add('bg-yellow-300'); // Add highlight
                                 selectedLikelihoodCellsPerRow[rowId] = cell;
                                 totalLikelihoodScore += value;
                             }
@@ -928,11 +932,12 @@
                         parsedSelections.i.forEach(encodedNum => {
                             const value = encodedNum % 10;
                             const rowNum = Math.floor(encodedNum / 10);
-                            const rowId = `impact-${rowNum}`; // Reconstruct "impact-X"
+                            const rowId = `impact-${rowNum}`;
 
                             const cell = impactTable.querySelector(`tr[data-row="${rowId}"] .impact-cell[data-value="${value}"]`);
                             if (cell) {
-                                cell.classList.add('bg-yellow-300');
+                                cell.classList.remove('bg-white'); // Ensure white is removed
+                                cell.classList.add('bg-yellow-300'); // Add highlight
                                 selectedImpactCellsPerRow[rowId] = cell;
                                 totalImpactScore += value;
                             }
