@@ -3,75 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Risk Rating Automation</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Risk Assessment</title>
     <style>
-        /* Custom styles for the Inter font and default element styling */
+        /* Base styles, replacing Tailwind's global resets and font */
         body {
-            font-family: 'Inter', sans-serif;
+            margin: 0;
+            line-height: 1.5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Align to the top */
             min-height: 100vh;
-            background-color: #ffffff; /* Changed to white */
-            padding: 2rem;
-            box-sizing: border-box;
+            background-color: #ffffff; /* White background */
+            padding: 2rem; /* Equivalent to p-8 */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
         }
+
         .container {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 2rem; /* Equivalent to gap-8 */
             width: 100%;
-            max-width: 900px; /* Increased max-width to accommodate new table */
+            max-width: 900px; /* Increased max-width */
         }
+
+        h1 {
+            font-size: 2.25rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #1a202c; /* text-gray-800 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.5rem; /* text-2xl */
+            font-weight: 600; /* font-semibold */
+            color: #4a5568; /* text-gray-700 */
+            margin-bottom: 1rem; /* mb-4 */
+            margin-top: 2rem; /* mt-8 */
+        }
+
         table {
             border-collapse: separate; /* Allows border-radius on cells */
             border-spacing: 0;
             background-color: #ffffff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
             border-radius: 0.75rem; /* rounded-xl */
             overflow: hidden; /* Ensures child elements respect border-radius */
-            table-layout: auto; /* Explicitly set table-layout to auto for content-based sizing */
-            width: 100%; /* Ensure tables take full width within their container */
+            table-layout: auto;
+            width: 100%;
         }
+
         th, td {
-            padding: 0.75rem 1rem; /* Default padding for most cells */
+            padding: 0.75rem 1rem;
             text-align: center;
             border: 1px solid #e2e8f0; /* border-gray-200 */
             transition: background-color 0.2s ease-in-out;
             border-radius: 0.5rem; /* rounded-lg for individual cells */
-            cursor: pointer; /* Indicate clickable cells */
-            vertical-align: middle; /* Changed to middle to center text vertically */
-            font-size: 0.875rem; /* Default font size for table cells (text-sm) */
-            line-height: 1.2; /* Adjust line height for better multi-line text display */
+            cursor: pointer;
+            vertical-align: middle;
+            font-size: 0.875rem; /* text-sm */
+            line-height: 1.2;
         }
+
         /* Specific padding for Category, SubCategory and Description columns to make them narrower */
         .category-table-col-narrow th,
         .category-table-col-narrow td {
-            padding-left: 0.125rem; /* Even narrower padding */
-            padding-right: 0.125rem; /* Even narrower padding */
+            padding-left: 0.125rem;
+            padding-right: 0.125rem;
         }
 
         /* Specific background colors for columns */
         .col-category {
-            background-color: #f3f4f6; /* Tailwind's bg-gray-100 */
+            background-color: #f3f4f6; /* bg-gray-100 */
         }
         .col-subcategory {
-            background-color: #f3f4f6; /* Tailwind's bg-gray-100 */
+            background-color: #f3f4f6; /* bg-gray-100 */
         }
         .col-description {
-            background-color: #d1fae5; /* Tailwind's bg-green-100 */
+            background-color: #d1fae5; /* bg-green-100 */
         }
 
         /* Darker grey for the header row of category table */
         #categoryTable thead th {
-            background-color: #e2e8f0; /* Tailwind's bg-gray-200 */
+            background-color: #e2e8f0; /* bg-gray-200 */
         }
 
         th {
             font-weight: 600; /* font-semibold */
             color: #2d3748; /* text-gray-800 */
         }
+
         /* Specific styling for the score display cell */
         #totalScoreCell, #totalImpactCell, #riskRatingDisplay {
             font-size: 1.25rem; /* text-xl */
@@ -81,10 +103,30 @@
             border-radius: 0.75rem; /* rounded-xl */
             padding: 1rem;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* shadow-sm */
         }
         #riskRatingDisplay {
             background-color: #dbeafe; /* bg-blue-200 */
+        }
+
+        /* Highlight for selected cells in tables */
+        .category-cell.bg-yellow-300,
+        .impact-cell.bg-yellow-300 {
+            background-color: #fcd34d; /* bg-yellow-300 */
+        }
+        .category-cell.bg-white,
+        .impact-cell.bg-white {
+            background-color: #ffffff; /* bg-white */
+        }
+
+        /* Highlight for score correlation tables */
+        #scoreTable tbody tr td.bg-yellow-300,
+        #impactScoreTable tbody tr td.bg-yellow-300 {
+            background-color: #fcd34d; /* bg-yellow-300 */
+        }
+        #scoreTable tbody tr td.bg-white,
+        #impactScoreTable tbody tr td.bg-white {
+            background-color: #ffffff; /* bg-white */
         }
 
         /* Heatmap specific styles */
@@ -92,20 +134,20 @@
             display: grid;
             grid-template-columns: auto repeat(5, 1fr); /* Labels + 5 columns for Impact */
             grid-template-rows: auto repeat(5, 1fr); /* Labels + 5 rows for Likelihood */
-            gap: 1px; /* Small gap between cells */
+            gap: 1px;
             background-color: #e2e8f0; /* Light grey background for grid lines */
             border-radius: 0.75rem;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: fit-content; /* Adjust width to content */
+            width: fit-content;
             margin: 0 auto; /* Center the heatmap */
         }
         .heatmap-cell, .heatmap-label {
-            padding: 0.3rem 0.75rem; /* Adjusted padding for shorter and wider cells */
+            padding: 0.3rem 0.75rem;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.8rem; /* Slightly smaller font for heatmap cells */
+            font-size: 0.8rem;
             font-weight: 500;
             color: #4a5568; /* text-gray-700 */
             border: 1px solid #e2e8f0;
@@ -113,47 +155,117 @@
         .heatmap-label {
             background-color: #edf2f7; /* bg-gray-100 */
             font-weight: 600;
-            color: #2d3748;
+            color: #2d3748; /* text-gray-800 */
         }
         .heatmap-label.x-axis {
-            writing-mode: horizontal-tb; /* Ensure horizontal text */
+            writing-mode: horizontal-tb;
             text-align: center;
         }
         .heatmap-label.y-axis {
-            writing-mode: vertical-lr; /* Rotate text for Y-axis labels */
+            writing-mode: vertical-lr;
             text-orientation: mixed;
             text-align: center;
-            transform: rotate(180deg); /* Rotate text upright */
-            white-space: nowrap; /* Prevent wrapping */
-            padding: 0.3rem 0.15rem; /* Adjusted padding for vertical text */
+            transform: rotate(180deg);
+            white-space: nowrap;
+            padding: 0.3rem 0.15rem;
         }
 
-        /* Heatmap color classes - UPDATED AND NEW */
-        /* Increased specificity for these rules */
-        div.heatmap-cell.risk-blue { background-color: #bfdbfe; } /* Tailwind blue-200 */
-        div.heatmap-cell.risk-lightblue { background-color: #93c5fd; } /* Tailwind blue-300 */
-        div.heatmap-cell.risk-lightgreen { background-color: #d4edda; } /* From previous risk-very-low */
-        div.heatmap-cell.risk-green { background-color: #a7f3d0; } /* A new green shade, Tailwind green-300 */
-        div.heatmap-cell.risk-yellow { background-color: #ffeeba; } /* From previous risk-moderate */
-        div.heatmap-cell.risk-orange { background-color: #fdba74; } /* Tailwind orange-300 */
+        /* Heatmap color classes */
+        .heatmap-cell.risk-blue { background-color: #bfdbfe; } /* blue-200 */
+        .heatmap-cell.risk-lightblue { background-color: #93c5fd; } /* blue-300 */
+        .heatmap-cell.risk-lightgreen { background-color: #d4edda; } /* custom light green */
+        .heatmap-cell.risk-green { background-color: #a7f3d0; } /* green-300 */
+        .heatmap-cell.risk-yellow { background-color: #ffeeba; } /* custom yellow */
+        .heatmap-cell.risk-orange { background-color: #fdba74; } /* orange-300 */
 
-        /* Keep .heatmap-cell.highlighted as it is for the border/shadow */
+        /* Highlighted heatmap cell */
         .heatmap-cell.highlighted {
-            border: 3px solid #3182ce; /* Blue border for highlighted cell */
-            box-shadow: 0 0 0 2px #63b3ed; /* Outer glow */
+            border: 3px solid #3182ce; /* blue-700 border */
+            box-shadow: 0 0 0 2px #63b3ed; /* blue-400 outer glow */
         }
 
-        /* Responsive adjustments */
+        /* Buttons and Input Styling */
+        .flex-buttons {
+            display: flex;
+            flex-direction: column; /* flex-col */
+            justify-content: center;
+            align-items: center;
+            gap: 1rem; /* gap-4 */
+            margin-top: 1.5rem; /* mt-6 */
+        }
+
+        .flex-buttons button {
+            padding: 0.75rem 1.5rem; /* px-6 py-3 */
+            font-weight: 600; /* font-semibold */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* transition duration-200 */
+            border: none;
+            cursor: pointer;
+            outline: none; /* focus:outline-none */
+        }
+
+        .flex-buttons button:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 */
+        }
+
+        #generateLinkBtn {
+            background-color: #3b82f6; /* bg-blue-500 */
+            color: #ffffff; /* text-white */
+        }
+        #generateLinkBtn:hover {
+            background-color: #2563eb; /* hover:bg-blue-600 */
+        }
+
+        #copyLinkBtn {
+            background-color: #6b7280; /* bg-gray-500 */
+            color: #ffffff; /* text-white */
+        }
+        #copyLinkBtn:hover {
+            background-color: #4b5563; /* hover:bg-gray-600 */
+        }
+
+        #exportTxtBtn {
+            background-color: #10b981; /* bg-green-500 */
+            color: #ffffff; /* text-white */
+        }
+        #exportTxtBtn:hover {
+            background-color: #059669; /* hover:bg-green-600 */
+        }
+
+        #shareableLinkInput {
+            flex-grow: 1; /* flex-grow */
+            padding: 0.5rem 1rem; /* px-4 py-2 */
+            border: 1px solid #d1d5db; /* border border-gray-300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+            outline: none; /* focus:outline-none */
+            background-color: #f3f4f6; /* bg-gray-100 */
+            color: #4b5563; /* text-gray-700 */
+            font-size: 0.875rem; /* text-sm */
+        }
+        #shareableLinkInput:focus {
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 */
+        }
+
+        /* Responsive adjustments for small screens (sm: breakpoint equivalent) */
+        @media (min-width: 640px) {
+            .flex-buttons {
+                flex-direction: row; /* sm:flex-row */
+                gap: 1rem; /* sm:gap-4 */
+            }
+        }
+
         @media (max-width: 640px) {
             body {
                 padding: 1rem;
             }
             th, td, .heatmap-cell, .heatmap-label {
-                padding: 0.3rem 0.5rem; /* Adjusted padding for mobile */
-                font-size: 0.65rem; /* Even smaller font size for mobile */
+                padding: 0.3rem 0.5rem;
+                font-size: 0.65rem;
             }
             #totalScoreCell, #totalImpactCell, #riskRatingDisplay {
-                font-size: 0.8rem; /* text-lg */
+                font-size: 0.8rem;
                 padding: 0.5rem;
             }
             .heatmap-label.y-axis {
@@ -164,40 +276,40 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Likelihood & Risk Assessment</h1>
+        <h1>Risk Assessment</h1>
 
         <div id="totalScoreCell" class="text-center">
-            Current Likelihood Score: <span id="totalScore">0</span>
+            Current Likelihood Score: <span id="totalLikelihoodLanguage">N/A</span>
         </div>
 
-        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Likelihood Category Table</h2>
-        <table id="categoryTable" class="divide-y divide-gray-200 rounded-xl">
+        <h2>Likelihood Category Table</h2>
+        <table id="categoryTable">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl category-table-col-narrow col-category">Category</th>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider category-table-col-narrow col-subcategory">SubCategory</th>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider category-table-col-narrow col-description">Description</th>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">1</th>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">2</th>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">3</th>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider">4</th>
-                    <th class="px-6 py-3 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tr-xl">5</th>
+                    <th class="category-table-col-narrow col-category">Category</th>
+                    <th class="category-table-col-narrow col-subcategory">SubCategory</th>
+                    <th class="category-table-col-narrow col-description">Description</th>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 <tr data-row="1">
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-category" rowspan="2">Intent</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Historical Targeting</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-description">Who/what has the threat targeted during past activity?</td>
+                    <td class="col-category" rowspan="2">Intent</td>
+                    <td class="col-subcategory">Historical Targeting</td>
+                    <td class="col-description">Who/what has the threat targeted during past activity?</td>
                     <td class="category-cell bg-white" data-value="1">Threat exclusively targets other business verticals and/or systems organization does not use</td>
-                    <td class="category-cell bg-white" data-value="2">Threat not yet seen within finance vertical, but could have impacts</td>
-                    <td class="category-cell bg-white" data-value="3">Threat has been seen in the finance vertical, but is not exclusive to it. Threat is opportunistic by nature.</td>
+                    <td class="category-cell bg-white" data-value="2">Threat not yet seen within other verticals, but could have impacts</td>
+                    <td class="category-cell bg-white" data-value="3">Threat has been seen in other verticals, but is not exclusive to them. Threat is opportunistic by nature.</td>
                     <td class="category-cell bg-white" data-value="4">Threat directly targets organization competitors and similar organizations.</td>
                     <td class="category-cell bg-white" data-value="5">Threat has been previously detected at organization.</td>
                 </tr>
                 <tr data-row="2">
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Motivation</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-description">Does the malware allow threat actor to access critical data or easily monetizable data?</td>
+                    <td class="col-subcategory">Motivation</td>
+                    <td class="col-description">Does the exploit allow threat actor to access critical data or easily monetizable data?</td>
                     <td class="category-cell bg-white" data-value="1">No reward</td>
                     <td class="category-cell bg-white" data-value="2">Low reward, such as strongly encrypted data, data lacking correlational context, or low privileged access to user systems.</td>
                     <td class="category-cell bg-white" data-value="3">Possible reward, such as login credentials to low privileged users of applications with sensitive data.</td>
@@ -205,9 +317,9 @@
                     <td class="category-cell bg-white" data-value="5">High reward, such as direct access to critical or highly monetizable data.</td>
                 </tr>
                 <tr data-row="3">
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-category" rowspan="2">Capability</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Detection & Prevention/ Anti-Detection</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">How likely will the threat be detected/prevented?</td>
+                    <td class="col-category" rowspan="2">Capability</td>
+                    <td class="col-subcategory">Detection & Prevention/ Anti-Detection</td>
+                    <td class="col-description">How likely will the threat be detected/prevented?</td>
                     <td class="category-cell bg-white" data-value="1">Automated active detection and prevention; threat makes no attempt to evade detection.</td>
                     <td class="category-cell bg-white" data-value="2">Automated active detection, manual prevention; threat utilizes some evasion techniques.</td>
                     <td class="category-cell bg-white" data-value="3">Manual detection and prevention capabilities in place; threat utilizes living off the land or other difficult to detect techniques.</td>
@@ -215,8 +327,8 @@
                     <td class="category-cell bg-white" data-value="5">No first layer detection/prevention; zero day vulnerability utilized.</td>
                 </tr>
                 <tr data-row="4">
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-subcategory">Threat Actor Capability</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 category-table-col-narrow col-description">How capable does the threat need to be to complete the attack?</td>
+                    <td class="col-subcategory">Threat Actor Capability</td>
+                    <td class="col-description">How capable does the threat need to be to complete the attack?</td>
                     <td class="category-cell bg-white" data-value="1">Multi-faceted operation requiring coordinated elite-level capability.</td>
                     <td class="category-cell bg-white" data-value="2">High difficulty requiring significant manual threat interaction.</td>
                     <td class="category-cell bg-white" data-value="3">Moderate difficulty requiring some manual threat interaction.</td>
@@ -224,9 +336,9 @@
                     <td class="category-cell bg-white" data-value="5">Automated tools available.</td>
                 </tr>
                 <tr data-row="5">
-                    <td class="px-6 py-4 font-medium text-gray-900 rounded-bl-xl col-category" rowspan="2">Opportunity</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-subcategory">Vulnerability Exposure</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">What is the exposure of verified vulnerability(ies) the threat is known to exploit?</td>
+                    <td class="col-category" rowspan="2">Opportunity</td>
+                    <td class="col-subcategory">Vulnerability Exposure</td>
+                    <td class="col-description">What is the exposure of verified vulnerability(ies) the threat is known to exploit?</td>
                     <td class="category-cell bg-white" data-value="1">Organization does not and has never had the vulnerability(ies) nor any system/process potentially affected.</td>
                     <td class="category-cell bg-white" data-value="2">Organization has remediated systems with potential vulnerability(ies); business processes established to prevent exploitation. Organization users are hardened against social engineering vectors.</td>
                     <td class="category-cell bg-white" data-value="3">Small number of vulnerable systems on the internal network; social engineering vectors are hidden from potential attackers.</td>
@@ -234,8 +346,8 @@
                     <td class="category-cell bg-white" data-value="5">Large number of (or high traffic systems) vulnerable on the organization perimeter; social engineering vectors are well known and available to the public.</td>
                 </tr>
                 <tr data-row="6">
-                    <td class="px-6 py-4 font-medium text-gray-900 col-subcategory">Threat Attack Vector</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">What type of access does the threat require to be successful?</td>
+                    <td class="col-subcategory">Threat Attack Vector</td>
+                    <td class="col-description">What type of access does the threat require to be successful?</td>
                     <td class="category-cell bg-white" data-value="1">Physical access to data center or network required.</td>
                     <td class="category-cell bg-white" data-value="2">Remote access to ADP systems required.</td>
                     <td class="category-cell bg-white" data-value="3">Social engineering required to gain access.</td>
@@ -245,62 +357,62 @@
             </tbody>
         </table>
 
-        <h2 class="text-2xl font-semibold text-gray-700 mb-4 mt-8">Likelihood Score Table</h2>
-        <table id="scoreTable" class="divide-y divide-gray-200 rounded-xl">
+        <h2>Likelihood Score Table</h2>
+        <table id="scoreTable">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl rounded-tr-xl" colspan="6">Score Correlation</th>
+                    <th colspan="6">Score Correlation</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Score</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-C">Score Range 6-9</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-D">Score Range 10-14</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-E">Score Range 15-19</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-F">Score Range 20-24</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-G">Score Range 25-30</td>
+                    <td>Score</td>
+                    <td class="score-col-C">Score Range 6-9</td>
+                    <td class="score-col-D">Score Range 10-14</td>
+                    <td class="score-col-E">Score Range 15-19</td>
+                    <td class="score-col-F">Score Range 20-24</td>
+                    <td class="score-col-G">Score Range 25-30</td>
                 </tr>
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Estimative Language</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-C">Remote</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-D">Unlikely</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-E">Possible</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-F">Likely</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-G">Highly Probable</td>
+                    <td>Estimative Language</td>
+                    <td class="score-col-C">Remote</td>
+                    <td class="score-col-D">Unlikely</td>
+                    <td class="score-col-E">Possible</td>
+                    <td class="score-col-F">Likely</td>
+                    <td class="score-col-G">Highly Probable</td>
                 </tr>
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900 rounded-bl-xl">Percentage Likelihood</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-C">0-3%</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-D">4-15%</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-E">16-40%</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-F">41-70%</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 score-col-G rounded-br-xl">71-100%</td>
+                    <td>Percentage Likelihood</td>
+                    <td class="score-col-C">0-3%</td>
+                    <td class="score-col-D">4-15%</td>
+                    <td class="score-col-E">16-40%</td>
+                    <td class="score-col-F">41-70%</td>
+                    <td class="score-col-G">71-100%</td>
                 </tr>
             </tbody>
         </table>
 
         <div id="totalImpactCell" class="text-center">
-            Current Impact Score: <span id="totalImpact">0</span>
+            Current Impact Score: <span id="totalImpactLanguage">N/A</span>
         </div>
 
-        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Impact Table</h2>
-        <table id="impactTable" class="divide-y divide-gray-200 rounded-xl">
+        <h2>Impact Table</h2>
+        <table id="impactTable">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl col-category">Impact Metric</th>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider col-description">Description</th>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">1</th>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">2</th>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">3</th>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">4</th>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider">5</th>
+                    <th class="col-category">Impact Metric</th>
+                    <th class="col-description">Description</th>
+                    <th>1</th>
+                    <th>2</th>
+                    <th>3</th>
+                    <th>4</th>
+                    <th>5</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 <tr data-row="impact-1">
-                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Confidentiality</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Unauthorized disclosure of information.</td>
+                    <td class="col-category">Confidentiality</td>
+                    <td class="col-description">Unauthorized disclosure of information.</td>
                     <td class="impact-cell bg-white" data-value="1">Minimal data exposure, no sensitive data.</td>
                     <td class="impact-cell bg-white" data-value="2">Minor sensitive data exposure, limited impact.</td>
                     <td class="impact-cell bg-white" data-value="3">Significant sensitive data exposure, moderate impact.</td>
@@ -308,8 +420,8 @@
                     <td class="impact-cell bg-white" data-value="5">Critical data breach, extreme impact.</td>
                 </tr>
                 <tr data-row="impact-2">
-                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Integrity</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Unauthorized modification or destruction of information.</td>
+                    <td class="col-category">Integrity</td>
+                    <td class="col-description">Unauthorized modification or destruction of information.</td>
                     <td class="impact-cell bg-white" data-value="1">Minor data alteration, easily recoverable.</td>
                     <td class="impact-cell bg-white" data-value="2">Limited data alteration, some manual recovery.</td>
                     <td class="impact-cell bg-white" data-value="3">Significant data corruption, moderate recovery effort.</td>
@@ -317,8 +429,8 @@
                     <td class="impact-cell bg-white" data-value="5">Critical data integrity loss, severe impact.</td>
                 </tr>
                 <tr data-row="impact-3">
-                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Availability</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Disruption of access to information or systems.</td>
+                    <td class="col-category">Availability</td>
+                    <td class="col-description">Disruption of access to information or systems.</td>
                     <td class="impact-cell bg-white" data-value="1">Brief, localized service interruption.</td>
                     <td class="impact-cell bg-white" data-value="2">Minor service interruption, limited users affected.</td>
                     <td class="impact-cell bg-white" data-value="3">Moderate service interruption, significant user impact.</td>
@@ -326,8 +438,8 @@
                     <td class="impact-cell bg-white" data-value="5">Complete system failure, prolonged outage.</td>
                 </tr>
                 <tr data-row="impact-4">
-                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Financial</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Monetary loss or impact on revenue.</td>
+                    <td class="col-category">Financial</td>
+                    <td class="col-description">Monetary loss or impact on revenue.</td>
                     <td class="impact-cell bg-white" data-value="1">Negligible financial loss.</td>
                     <td class="impact-cell bg-white" data-value="2">Minor financial loss, easily absorbed.</td>
                     <td class="impact-cell bg-white" data-value="3">Moderate financial loss, impacting department budget.</td>
@@ -335,8 +447,8 @@
                     <td class="impact-cell bg-white" data-value="5">Severe financial loss, existential threat.</td>
                 </tr>
                 <tr data-row="impact-5">
-                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Reputation</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Damage to public image or trust.</td>
+                    <td class="col-category">Reputation</td>
+                    <td class="col-description">Damage to public image or trust.</td>
                     <td class="impact-cell bg-white" data-value="1">No noticeable reputational damage.</td>
                     <td class="impact-cell bg-white" data-value="2">Minor negative publicity, quickly forgotten.</td>
                     <td class="impact-cell bg-white" data-value="3">Moderate negative publicity, short-term trust erosion.</td>
@@ -344,8 +456,8 @@
                     <td class="impact-cell bg-white" data-value="5">Catastrophic reputational damage, irreversible trust loss.</td>
                 </tr>
                 <tr data-row="impact-6">
-                    <td class="px-6 py-4 font-medium text-gray-900 col-category">Non-compliance</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Violation of laws, regulations, or policies.</td>
+                    <td class="col-category">Non-compliance</td>
+                    <td class="col-description">Violation of laws, regulations, or policies.</td>
                     <td class="impact-cell bg-white" data-value="1">Minor policy violation, no legal repercussions.</td>
                     <td class="impact-cell bg-white" data-value="2">Low regulatory violation, minor fines possible.</td>
                     <td class="impact-cell bg-white" data-value="3">Moderate regulatory violation, significant fines possible.</td>
@@ -353,8 +465,8 @@
                     <td class="impact-cell bg-white" data-value="5">Critical legal violation, business-ending penalties.</td>
                 </tr>
                 <tr data-row="impact-7">
-                    <td class="px-6 py-4 font-medium text-gray-900 rounded-bl-xl col-category">Privacy</td>
-                    <td class="px-6 py-4 font-medium text-gray-900 col-description">Unauthorized access to or misuse of personal data.</td>
+                    <td class="col-category">Privacy</td>
+                    <td class="col-description">Unauthorized access to or misuse of personal data.</td>
                     <td class="impact-cell bg-white" data-value="1">No personal data involved.</td>
                     <td class="impact-cell bg-white" data-value="2">Minor personal data exposure, non-identifiable.</td>
                     <td class="impact-cell bg-white" data-value="3">Moderate personal data exposure, some identifiable data.</td>
@@ -364,34 +476,34 @@
             </tbody>
         </table>
 
-        <h2 class="text-2xl font-semibold text-gray-700 mb-4 mt-8">Impact Score Table</h2>
-        <table id="impactScoreTable" class="divide-y divide-gray-200 rounded-xl">
+        <h2>Impact Score Table</h2>
+        <table id="impactScoreTable">
             <thead>
                 <tr>
-                    <th class="px-6 py-3 bg-gray-100 text-gray-800 text-xs font-medium uppercase tracking-wider rounded-tl-xl rounded-tr-xl" colspan="6">Impact Score Correlation</th>
+                    <th colspan="6">Impact Score Correlation</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Score</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-A">1-7</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-B">8-14</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-C">15-21</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-D">22-28</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-E">29-35</td>
+                    <td>Score</td>
+                    <td class="impact-score-col-A">1-7</td>
+                    <td class="impact-score-col-B">8-14</td>
+                    <td class="impact-score-col-C">15-21</td>
+                    <td class="impact-score-col-D">22-28</td>
+                    <td class="impact-score-col-E">29-35</td>
                 </tr>
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Impact Level</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-A">Insignificant</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-B">Minor</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-C">Material</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-D">Major</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 impact-score-col-E">Extreme</td>
+                    <td>Impact Level</td>
+                    <td class="impact-score-col-A">Insignificant</td>
+                    <td class="impact-score-col-B">Minor</td>
+                    <td class="impact-score-col-C">Material</td>
+                    <td class="impact-score-col-D">Major</td>
+                    <td class="impact-score-col-E">Extreme</td>
                 </tr>
             </tbody>
         </table>
 
-        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Risk Matrix Heatmap</h2>
+        <h2>Risk Matrix Heatmap</h2>
         <div id="heatmapContainer">
             <div class="heatmap-label"></div>
             <div class="heatmap-label x-axis">Insignificant</div>
@@ -436,19 +548,19 @@
             <div id="cell-r-extreme" class="heatmap-cell risk-yellow"></div>
         </div>
 
-        <div id="riskRatingDisplay" class="text-center mt-6">
+        <div id="riskRatingDisplay" class="text-center" style="margin-top: 1.5rem;">
             Calculated Risk Rating: <span id="riskRatingValue">N/A</span>
         </div>
 
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mt-6">
-            <button id="generateLinkBtn" class="px-6 py-3 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition duration-200">
+        <div class="flex-buttons">
+            <button id="generateLinkBtn">
                 Generate Shareable Link
             </button>
-            <input type="text" id="shareableLinkInput" readonly class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 bg-gray-100 text-gray-700 text-sm">
-            <button id="copyLinkBtn" class="px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition duration-200">
+            <input type="text" id="shareableLinkInput" readonly>
+            <button id="copyLinkBtn">
                 Copy Link
             </button>
-            <button id="exportTxtBtn" class="px-6 py-3 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75 transition duration-200">
+            <button id="exportTxtBtn">
                 Export to TXT
             </button>
         </div>
@@ -467,8 +579,8 @@
         const selectedImpactCellsPerRow = {};
 
         // Get references to DOM elements
-        let totalLikelihoodScoreDisplay;
-        let totalImpactScoreDisplay;
+        let totalLikelihoodLanguageDisplay;
+        let totalImpactLanguageDisplay;
         let riskRatingDisplay;
         let categoryTable;
         let impactTable;
@@ -486,46 +598,48 @@
         // Columns: Insignificant, Minor, Material, Major, Extreme (indexed 0-4)
         const riskMatrix = [
             // Insignificant, Minor, Material, Major, Extreme (Impact)
-            ['Moderate', 'Moderate', 'High', 'Very High', 'Very High'], // Highly Probable (Likelihood index 0) - was lightgreen, lightgreen, yellow, orange, orange
-            ['Low', 'Moderate', 'High', 'Very High', 'Very High'],      // Likely (Likelihood index 1) - was green, lightgreen, yellow, orange, orange
-            ['Very Low', 'Low', 'Moderate', 'High', 'Very High'],   // Possible (Likelihood index 2) - was lightblue, green, lightgreen, yellow, orange
-            ['Very Low', 'Low', 'Low', 'Moderate', 'High'],    // Unlikely (Likelihood index 3) - was lightblue, green, green, lightgreen, yellow
-            ['Very Low', 'Very Low', 'Low', 'Moderate', 'High'] // Remote (Likelihood index 4) - was lightblue, lightblue, green, lightgreen, yellow
+            ['Moderate', 'Moderate', 'High', 'Very High', 'Very High'], // Highly Probable (Likelihood index 0)
+            ['Low', 'Moderate', 'High', 'Very High', 'Very High'],      // Likely (Likelihood index 1)
+            ['Very Low', 'Low', 'Moderate', 'High', 'Very High'],   // Possible (Likelihood index 2)
+            ['Very Low', 'Low', 'Low', 'Moderate', 'High'],    // Unlikely (Likelihood index 3)
+            ['Very Low', 'Very Low', 'Low', 'Moderate', 'High'] // Remote (Likelihood index 4)
         ];
 
         // Mappings for scores to qualitative labels and heatmap indices
         const likelihoodLevels = [
-            { label: 'Highly Probable', scoreRange: [25, 30], idPrefix: 'hp' },
-            { label: 'Likely', scoreRange: [20, 24], idPrefix: 'l' },
-            { label: 'Possible', scoreRange: [15, 19], idPrefix: 'p' },
-            { label: 'Unlikely', scoreRange: [10, 14], idPrefix: 'u' },
-            { label: 'Remote', scoreRange: [6, 9], idPrefix: 'r' }
+            { label: 'Highly Probable', scoreRange: [25, 30], index: 0, idPrefix: 'hp' },
+            { label: 'Likely', scoreRange: [20, 24], index: 1, idPrefix: 'l' },
+            { label: 'Possible', scoreRange: [15, 19], index: 2, idPrefix: 'p' },
+            { label: 'Unlikely', scoreRange: [10, 14], index: 3, idPrefix: 'u' },
+            { label: 'Remote', scoreRange: [6, 9], index: 4, idPrefix: 'r' }
         ];
 
         const impactLevels = [
-            { label: 'Insignificant', scoreRange: [1, 7], idPrefix: 'insignificant' }, // 7 impact metrics, min score 1 each
-            { label: 'Minor', scoreRange: [8, 14], idPrefix: 'minor' },
-            { label: 'Material', scoreRange: [15, 21], idPrefix: 'material' },
-            { label: 'Major', scoreRange: [22, 28], idPrefix: 'major' },
-            { label: 'Extreme', scoreRange: [29, 35], idPrefix: 'extreme' } // 7 impact metrics, max score 5 each = 35
+            { label: 'Insignificant', scoreRange: [1, 7], index: 0, idPrefix: 'insignificant' },
+            { label: 'Minor', scoreRange: [8, 14], index: 1, idPrefix: 'minor' },
+            { label: 'Material', scoreRange: [15, 21], index: 2, idPrefix: 'material' },
+            { label: 'Major', scoreRange: [22, 28], index: 3, idPrefix: 'major' },
+            { label: 'Extreme', scoreRange: [29, 35], index: 4, idPrefix: 'extreme' }
         ];
 
 
         /**
-         * Updates the total likelihood score displayed on the page.
+         * Updates the total likelihood score displayed on the page with estimative language.
          */
         function updateLikelihoodScoreDisplay() {
-            totalLikelihoodScoreDisplay.textContent = totalLikelihoodScore;
+            const currentLikelihood = getLikelihoodLevel(totalLikelihoodScore);
+            totalLikelihoodLanguageDisplay.textContent = currentLikelihood ? currentLikelihood.label : 'N/A';
             updateHeatmapAndRiskRating();
         }
 
         /**
-         * Updates the total impact score displayed on the page.
+         * Updates the total impact score displayed on the page with impact level language.
          */
         function updateImpactScoreDisplay() {
-            totalImpactScoreDisplay.textContent = totalImpactScore;
+            const currentImpact = getImpactLevel(totalImpactScore);
+            totalImpactLanguageDisplay.textContent = currentImpact ? currentImpact.label : 'N/A';
             updateHeatmapAndRiskRating();
-            updateImpactScoreTableHighlight(); // Call the new function for impact score table
+            updateImpactScoreTableHighlight();
         }
 
         /**
@@ -533,10 +647,10 @@
          */
         function updateScoreTableHighlight() {
             // Remove all existing yellow highlights from score table columns
-            const allScoreCols = scoreTable.querySelectorAll('[class*="score-col-"]');
+            const allScoreCols = scoreTable.querySelectorAll('td[class*="score-col-"]');
             allScoreCols.forEach(col => {
                 col.classList.remove('bg-yellow-300');
-                col.classList.add('bg-white'); // Ensure it reverts to white
+                col.classList.add('bg-white');
             });
 
             // Determine which column to highlight based on the score ranges
@@ -567,17 +681,16 @@
          * Updates the highlighting of columns in the Impact Score table based on the current total impact score.
          */
         function updateImpactScoreTableHighlight() {
-            // Ensure impactScoreTable is initialized
             if (!impactScoreTable) {
                 console.error("impactScoreTable is null. Cannot update impact score table.");
                 return;
             }
 
             // Remove all existing yellow highlights from impact score table columns
-            const allImpactScoreCols = impactScoreTable.querySelectorAll('[class*="impact-score-col-"]');
+            const allImpactScoreCols = impactScoreTable.querySelectorAll('td[class*="impact-score-col-"]');
             allImpactScoreCols.forEach(col => {
                 col.classList.remove('bg-yellow-300');
-                col.classList.add('bg-white'); // Ensure it reverts to white
+                col.classList.add('bg-white');
             });
 
             // Determine which column to highlight based on the score ranges
@@ -687,15 +800,15 @@
          * @returns {object|null} The likelihood level object or null if no match.
          */
         function getLikelihoodLevel(score) {
-            // Reverse order to match heatmap Y-axis (Highly Probable at top)
-            for (let i = likelihoodLevels.length - 1; i >= 0; i--) {
+            for (let i = 0; i < likelihoodLevels.length; i++) {
                 const level = likelihoodLevels[i];
                 if (score >= level.scoreRange[0] && score <= level.scoreRange[1]) {
-                    return { level: level.label, index: i, idPrefix: level.idPrefix };
+                    return level;
                 }
             }
-            return null;
+            return null; // Return null if score is outside any defined range
         }
+
 
         /**
          * Determines the impact level based on the total impact score.
@@ -706,11 +819,12 @@
             for (let i = 0; i < impactLevels.length; i++) {
                 const level = impactLevels[i];
                 if (score >= level.scoreRange[0] && score <= level.scoreRange[1]) {
-                    return { level: level.label, index: i, idPrefix: level.idPrefix };
+                    return level;
                 }
             }
-            return null;
+            return null; // Return null if score is outside any defined range
         }
+
 
         /**
          * Updates the heatmap visualization and displays the calculated risk rating.
@@ -726,7 +840,6 @@
             const currentImpact = getImpactLevel(totalImpactScore);
 
             if (currentLikelihood && currentImpact) {
-                // Likelihood index is used directly for riskMatrix lookup
                 const risk = riskMatrix[currentLikelihood.index][currentImpact.index];
                 riskRatingDisplay.textContent = risk;
 
@@ -747,18 +860,16 @@
         function saveSelectionsToUrl() {
             const likelihoodSelections = [];
             for (const rowId in selectedLikelihoodCellsPerRow) {
-                likelihoodSelections.push({
-                    rowId: rowId,
-                    value: parseInt(selectedLikelihoodCellsPerRow[rowId].dataset.value)
-                });
+                const rowNum = parseInt(rowId);
+                const value = parseInt(selectedLikelihoodCellsPerRow[rowId].dataset.value);
+                likelihoodSelections.push(rowNum * 10 + value); // Combine rowId and value
             }
 
             const impactSelections = [];
             for (const rowId in selectedImpactCellsPerRow) {
-                impactSelections.push({
-                    rowId: rowId,
-                    value: parseInt(selectedImpactCellsPerRow[rowId].dataset.value)
-                });
+                const rowNum = parseInt(rowId.replace('impact-', '')); // Extract number from "impact-X"
+                const value = parseInt(selectedImpactCellsPerRow[rowId].dataset.value);
+                impactSelections.push(rowNum * 10 + value); // Combine rowId and value
             }
 
             const allSelections = {
@@ -798,24 +909,32 @@
 
                     // Apply likelihood selections
                     if (parsedSelections.l && Array.isArray(parsedSelections.l)) {
-                        parsedSelections.l.forEach(selection => {
-                            const cell = categoryTable.querySelector(`tr[data-row="${selection.rowId}"] .category-cell[data-value="${selection.value}"]`);
+                        parsedSelections.l.forEach(encodedNum => {
+                            const value = encodedNum % 10;
+                            const rowNum = Math.floor(encodedNum / 10);
+                            const rowId = rowNum.toString(); // Convert back to string for data-row
+
+                            const cell = categoryTable.querySelector(`tr[data-row="${rowId}"] .category-cell[data-value="${value}"]`);
                             if (cell) {
                                 cell.classList.add('bg-yellow-300');
-                                selectedLikelihoodCellsPerRow[selection.rowId] = cell;
-                                totalLikelihoodScore += selection.value;
+                                selectedLikelihoodCellsPerRow[rowId] = cell;
+                                totalLikelihoodScore += value;
                             }
                         });
                     }
 
                     // Apply impact selections
                     if (parsedSelections.i && Array.isArray(parsedSelections.i)) {
-                        parsedSelections.i.forEach(selection => {
-                            const cell = impactTable.querySelector(`tr[data-row="${selection.rowId}"] .impact-cell[data-value="${selection.value}"]`);
+                        parsedSelections.i.forEach(encodedNum => {
+                            const value = encodedNum % 10;
+                            const rowNum = Math.floor(encodedNum / 10);
+                            const rowId = `impact-${rowNum}`; // Reconstruct "impact-X"
+
+                            const cell = impactTable.querySelector(`tr[data-row="${rowId}"] .impact-cell[data-value="${value}"]`);
                             if (cell) {
                                 cell.classList.add('bg-yellow-300');
-                                selectedImpactCellsPerRow[selection.rowId] = cell;
-                                totalImpactScore += selection.value;
+                                selectedImpactCellsPerRow[rowId] = cell;
+                                totalImpactScore += value;
                             }
                         });
                     }
@@ -839,42 +958,57 @@
         function exportToTxt() {
             let reportContent = "Risk Rating report\n";
             reportContent += `Calculated Risk Rating: ${riskRatingDisplay.textContent}\n\n`;
-            reportContent += `Current Likelihood Score: ${totalLikelihoodScore}\n\n`;
-            reportContent += `Current Impact Score: ${totalImpactScore}\n\n`;
+
+            const currentLikelihoodLanguage = totalLikelihoodLanguageDisplay.textContent;
+            reportContent += `Current Likelihood Score: ${currentLikelihoodLanguage}\n`;
+            reportContent += `Current Likelihood Numeric Score: ${totalLikelihoodScore}\n\n`;
+
+            const currentImpactLanguage = totalImpactLanguageDisplay.textContent;
+            reportContent += `Current Impact Score: ${currentImpactLanguage}\n`;
+            reportContent += `Current Impact Numeric Score: ${totalImpactScore}\n\n`;
+
 
             reportContent += "Likelihood Calculation:\n\n";
 
-            // Likelihood categories and their corresponding row data-rows
-            const likelihoodCategories = {
-                "Intent": ["1", "2"],
-                "Capability": ["3", "4"],
-                "Opportunity": ["5", "6"]
+            // Likelihood categories and their corresponding row data-rows, including subcategory names
+            const likelihoodSubcategories = {
+                "1": { category: "Intent", subcategory: "Historical Targeting" },
+                "2": { category: "Intent", subcategory: "Motivation" },
+                "3": { category: "Capability", subcategory: "Detection & Prevention/ Anti-Detection" },
+                "4": { category: "Capability", subcategory: "Threat Actor Capability" },
+                "5": { category: "Opportunity", subcategory: "Vulnerability Exposure" },
+                "6": { category: "Opportunity", subcategory: "Threat Attack Vector" }
             };
 
-            for (const category in likelihoodCategories) {
-                reportContent += `${category}:\n`;
-                likelihoodCategories[category].forEach(rowId => {
-                    const selectedCell = selectedLikelihoodCellsPerRow[rowId];
-                    const rowNumber = parseInt(rowId);
-                    let subCategoryElement;
+            const likelihoodReportSections = {
+                "Intent": [],
+                "Capability": [],
+                "Opportunity": []
+            };
 
-                    // Determine the correct child index for subcategory based on rowId parity
-                    if (rowNumber % 2 !== 0) { // Odd rowId (1, 3, 5)
-                        subCategoryElement = categoryTable.querySelector(`tr[data-row="${rowId}"] td:nth-child(2)`);
-                    } else { // Even rowId (2, 4, 6)
-                        subCategoryElement = categoryTable.querySelector(`tr[data-row="${rowId}"] td:nth-child(1)`);
-                    }
+            for (const rowId in likelihoodSubcategories) {
+                const { category, subcategory } = likelihoodSubcategories[rowId];
+                const selectedCell = selectedLikelihoodCellsPerRow[rowId];
 
-                    const subCategoryName = subCategoryElement ? subCategoryElement.textContent.trim() : "N/A";
+                let scoreText = "Not selected";
+                let descriptionText = "";
 
-                    if (selectedCell) {
-                        reportContent += `${subCategoryName} score: ${selectedCell.dataset.value}\n`;
-                        reportContent += `${selectedCell.textContent.trim()}\n\n`;
-                    } else {
-                        reportContent += `${subCategoryName} score: Not selected\n\n`;
-                    }
-                });
+                if (selectedCell) {
+                    scoreText = selectedCell.dataset.value;
+                    descriptionText = selectedCell.textContent.trim();
+                }
+
+                likelihoodReportSections[category].push(
+                    `${subcategory} score: ${scoreText}\n` +
+                    `${descriptionText}\n`
+                );
             }
+
+            for (const category in likelihoodReportSections) {
+                reportContent += `${category}:\n`;
+                reportContent += likelihoodReportSections[category].join("\n");
+            }
+
 
             reportContent += "\nImpact Calculation:\n\n";
 
@@ -913,8 +1047,8 @@
         // Initialize all table functionalities and update displays on window load
         window.onload = function() {
             // Initialize DOM element variables
-            totalLikelihoodScoreDisplay = document.getElementById('totalScore');
-            totalImpactScoreDisplay = document.getElementById('totalImpact');
+            totalLikelihoodLanguageDisplay = document.getElementById('totalLikelihoodLanguage');
+            totalImpactLanguageDisplay = document.getElementById('totalImpactLanguage');
             riskRatingDisplay = document.getElementById('riskRatingValue');
             categoryTable = document.getElementById('categoryTable');
             impactTable = document.getElementById('impactTable');
@@ -924,18 +1058,15 @@
             generateLinkBtn = document.getElementById('generateLinkBtn');
             shareableLinkInput = document.getElementById('shareableLinkInput');
             copyLinkBtn = document.getElementById('copyLinkBtn');
-            exportTxtBtn = document.getElementById('exportTxtBtn'); // Get reference to the new button
+            exportTxtBtn = document.getElementById('exportTxtBtn');
 
             // Add event listeners for new buttons
             generateLinkBtn.addEventListener('click', saveSelectionsToUrl);
             copyLinkBtn.addEventListener('click', () => {
                 shareableLinkInput.select();
                 document.execCommand('copy');
-                // Optional: Provide visual feedback that link is copied
-                // Using alert for simplicity, consider custom modal for better UX
-                // alert('Link copied to clipboard!');
             });
-            exportTxtBtn.addEventListener('click', exportToTxt); // Add event listener for TXT export
+            exportTxtBtn.addEventListener('click', exportToTxt);
 
             initializeCategoryTable();
             initializeImpactTable();
