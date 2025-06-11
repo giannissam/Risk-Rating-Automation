@@ -24,7 +24,7 @@
             flex-direction: column;
             gap: 2rem; /* Equivalent to gap-8 */
             width: 100%;
-            max-width: 900px; /* Increased max-width */
+            max-width: 1200px; /* Increased max-width for wider tables */
         }
 
         h1 {
@@ -43,15 +43,22 @@
             margin-top: 2rem; /* mt-8 */
         }
 
+        /* Responsive table container */
+        .table-responsive {
+            overflow-x: auto; /* Allows horizontal scrolling for wide tables */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            border-radius: 0.75rem; /* Apply border-radius from table */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Apply shadow from table */
+            background-color: #ffffff; /* Moved from table */
+            width: 100%; /* Ensure the wrapper takes full width of its parent (.container) */
+        }
+
         table {
             border-collapse: separate; /* Allows border-radius on cells */
             border-spacing: 0;
-            background-color: #ffffff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
-            border-radius: 0.75rem; /* rounded-xl */
-            overflow: hidden; /* Ensures child elements respect border-radius */
-            table-layout: auto;
-            width: 100%;
+            /* Removed background-color, box-shadow, border-radius, overflow from here */
+            table-layout: fixed; /* Force fixed column widths */
+            width: 100%; /* Ensure table takes full width of its container */
         }
 
         th, td {
@@ -64,6 +71,7 @@
             vertical-align: middle;
             font-size: 0.875rem; /* text-sm */
             line-height: 1.2;
+            word-break: break-word; /* Ensures long words break and wrap within the cell */
         }
 
         /* Specific padding for Category, SubCategory and Description columns to make them narrower */
@@ -248,6 +256,46 @@
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 */
         }
 
+        /* Column widths for Likelihood Category Table */
+        #categoryTable th:nth-child(1) { width: 8%; } /* Category */
+        #categoryTable th:nth-child(2) { width: 12%; } /* SubCategory */
+        #categoryTable th:nth-child(3) { width: 18%; } /* Description (reduced from 25% to 18%) */
+        #categoryTable th:nth-child(4),
+        #categoryTable th:nth-child(5),
+        #categoryTable th:nth-child(6),
+        #categoryTable th:nth-child(7),
+        #categoryTable th:nth-child(8) { width: 12.4%; } /* Scores (increased from 11% to 12.4%) */
+
+
+        /* Column widths for Impact Table */
+        #impactTable th:nth-child(1) { width: 12%; } /* Impact Metric */
+        #impactTable th:nth-child(2) { width: 28%; } /* Description (reduced from 33% to 28%) */
+        #impactTable th:nth-child(3),
+        #impactTable th:nth-child(4),
+        #impactTable th:nth-child(5),
+        #impactTable th:nth-child(6),
+        #impactTable th:nth-child(7) { width: 12%; } /* Scores (increased from 11% to 12%) */
+
+
+        /* Column widths for Likelihood Score Table */
+        #scoreTable th:nth-child(1),
+        #scoreTable td:nth-child(1) { width: 20%; } /* Score / Estimative Language / Percentage Likelihood */
+        #scoreTable th:nth-child(2), #scoreTable td:nth-child(2) { width: 16%; } /* Score Range 6-9 */
+        #scoreTable th:nth-child(3), #scoreTable td:nth-child(3) { width: 16%; } /* Score Range 10-14 */
+        #scoreTable th:nth-child(4), #scoreTable td:nth-child(4) { width: 16%; } /* Score Range 15-19 */
+        #scoreTable th:nth-child(5), #scoreTable td:nth-child(5) { width: 16%; } /* Score Range 20-24 */
+        #scoreTable th:nth-child(6), #scoreTable td:nth-child(6) { width: 16%; } /* Score Range 25-30 */
+
+        /* Column widths for Impact Score Table */
+        #impactScoreTable th:nth-child(1),
+        #impactScoreTable td:nth-child(1) { width: 20%; } /* Score / Impact Level */
+        #impactScoreTable th:nth-child(2), #impactScoreTable td:nth-child(2) { width: 16%; } /* 1-7 */
+        #impactScoreTable th:nth-child(3), #impactScoreTable td:nth-child(3) { width: 16%; } /* 8-14 */
+        #impactScoreTable th:nth-child(4), #impactScoreTable td:nth-child(4) { width: 16%; } /* 15-21 */
+        #impactScoreTable th:nth-child(5), #impactScoreTable td:nth-child(5) { width: 16%; } /* 22-28 */
+        #impactScoreTable th:nth-child(6), #impactScoreTable td:nth-child(6) { width: 16%; } /* 29-35 */
+
+
         /* Responsive adjustments for small screens (sm: breakpoint equivalent) */
         @media (min-width: 640px) {
             .flex-buttons {
@@ -283,225 +331,233 @@
         </div>
 
         <h2>Likelihood Category Table</h2>
-        <table id="categoryTable">
-            <thead>
-                <tr>
-                    <th class="category-table-col-narrow col-category">Category</th>
-                    <th class="category-table-col-narrow col-subcategory">SubCategory</th>
-                    <th class="category-table-col-narrow col-description">Description</th>
-                    <th>1</th>
-                    <th>2</th>
-                    <th>3</th>
-                    <th>4</th>
-                    <th>5</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-row="1">
-                    <td class="col-category" rowspan="2">Intent</td>
-                    <td class="col-subcategory">Historical Targeting</td>
-                    <td class="col-description">Who/what has the threat targeted during past activity?</td>
-                    <td class="category-cell bg-white" data-value="1">Threat exclusively targets other business verticals and/or systems organization does not use</td>
-                    <td class="category-cell bg-white" data-value="2">Threat not yet seen within other verticals, but could have impacts</td>
-                    <td class="category-cell bg-white" data-value="3">Threat has been seen in other verticals, but is not exclusive to them. Threat is opportunistic by nature.</td>
-                    <td class="category-cell bg-white" data-value="4">Threat directly targets organization competitors and similar organizations.</td>
-                    <td class="category-cell bg-white" data-value="5">Threat has been previously detected at organization.</td>
-                </tr>
-                <tr data-row="2">
-                    <td class="col-subcategory">Motivation</td>
-                    <td class="col-description">Does the exploit allow threat actor to access critical data or easily monetizable data?</td>
-                    <td class="category-cell bg-white" data-value="1">No reward</td>
-                    <td class="category-cell bg-white" data-value="2">Low reward, such as strongly encrypted data, data lacking correlational context, or low privileged access to user systems.</td>
-                    <td class="category-cell bg-white" data-value="3">Possible reward, such as login credentials to low privileged users of applications with sensitive data.</td>
-                    <td class="category-cell bg-white" data-value="4">Potentially high rewared, such as admin credentials to critical assets or access to obfuscated sensistive data.</td>
-                    <td class="category-cell bg-white" data-value="5">High reward, such as direct access to critical or highly monetizable data.</td>
-                </tr>
-                <tr data-row="3">
-                    <td class="col-category" rowspan="2">Capability</td>
-                    <td class="col-subcategory">Detection & Prevention/ Anti-Detection</td>
-                    <td class="col-description">How likely will the threat be detected/prevented?</td>
-                    <td class="category-cell bg-white" data-value="1">Automated active detection and prevention; threat makes no attempt to evade detection.</td>
-                    <td class="category-cell bg-white" data-value="2">Automated active detection, manual prevention; threat utilizes some evasion techniques.</td>
-                    <td class="category-cell bg-white" data-value="3">Manual detection and prevention capabilities in place; threat utilizes living off the land or other difficult to detect techniques.</td>
-                    <td class="category-cell bg-white" data-value="4">Unlikely to be detected or prevented; combination of multiple evasion techniques without zero day.</td>
-                    <td class="category-cell bg-white" data-value="5">No first layer detection/prevention; zero day vulnerability utilized.</td>
-                </tr>
-                <tr data-row="4">
-                    <td class="col-subcategory">Threat Actor Capability</td>
-                    <td class="col-description">How capable does the threat need to be to complete the attack?</td>
-                    <td class="category-cell bg-white" data-value="1">Multi-faceted operation requiring coordinated elite-level capability.</td>
-                    <td class="category-cell bg-white" data-value="2">High difficulty requiring significant manual threat interaction.</td>
-                    <td class="category-cell bg-white" data-value="3">Moderate difficulty requiring some manual threat interaction.</td>
-                    <td class="category-cell bg-white" data-value="4">Moderate ease requiring little to no manual threat interaction.</td>
-                    <td class="category-cell bg-white" data-value="5">Automated tools available.</td>
-                </tr>
-                <tr data-row="5">
-                    <td class="col-category" rowspan="2">Opportunity</td>
-                    <td class="col-subcategory">Vulnerability Exposure</td>
-                    <td class="col-description">What is the exposure of verified vulnerability(ies) the threat is known to exploit?</td>
-                    <td class="category-cell bg-white" data-value="1">Organization does not and has never had the vulnerability(ies) nor any system/process potentially affected.</td>
-                    <td class="category-cell bg-white" data-value="2">Organization has remediated systems with potential vulnerability(ies); business processes established to prevent exploitation. Organization users are hardened against social engineering vectors.</td>
-                    <td class="category-cell bg-white" data-value="3">Small number of vulnerable systems on the internal network; social engineering vectors are hidden from potential attackers.</td>
-                    <td class="category-cell bg-white" data-value="4">Large number of vulnerable systems on the internal network; small number of vulnerable systems on the organization perimeter; social engineering vectors are publically accessible.</td>
-                    <td class="category-cell bg-white" data-value="5">Large number of (or high traffic systems) vulnerable on the organization perimeter; social engineering vectors are well known and available to the public.</td>
-                </tr>
-                <tr data-row="6">
-                    <td class="col-subcategory">Threat Attack Vector</td>
-                    <td class="col-description">What type of access does the threat require to be successful?</td>
-                    <td class="category-cell bg-white" data-value="1">Physical access to data center or network required.</td>
-                    <td class="category-cell bg-white" data-value="2">Remote access to ADP systems required.</td>
-                    <td class="category-cell bg-white" data-value="3">Social engineering required to gain access.</td>
-                    <td class="category-cell bg-white" data-value="4">Phishing or drive by download.</td>
-                    <td class="category-cell bg-white" data-value="5">Self propagation techniques in use; no access required.</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="categoryTable">
+                <thead>
+                    <tr>
+                        <th class="category-table-col-narrow col-category">Category</th>
+                        <th class="category-table-col-narrow col-subcategory">SubCategory</th>
+                        <th class="category-table-col-narrow col-description">Description</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-row="1">
+                        <td class="col-category" rowspan="2">Intent</td>
+                        <td class="col-subcategory">Historical Targeting</td>
+                        <td class="col-description">Who/what has the threat targeted during past activity?</td>
+                        <td class="category-cell bg-white" data-value="1">Threat exclusively targets other business verticals and/or systems organization does not use</td>
+                        <td class="category-cell bg-white" data-value="2">Threat not yet seen within other verticals, but could have impacts</td>
+                        <td class="category-cell bg-white" data-value="3">Threat has been seen in other verticals, but is not exclusive to them. Threat is opportunistic by nature.</td>
+                        <td class="category-cell bg-white" data-value="4">Threat directly targets organization competitors and similar organizations.</td>
+                        <td class="category-cell bg-white" data-value="5">Threat has been previously detected at organization.</td>
+                    </tr>
+                    <tr data-row="2">
+                        <td class="col-subcategory">Motivation</td>
+                        <td class="col-description">Does the exploit allow threat actor to access critical data or easily monetizable data?</td>
+                        <td class="category-cell bg-white" data-value="1">No reward</td>
+                        <td class="category-cell bg-white" data-value="2">Low reward, such as strongly encrypted data, data lacking correlational context, or low privileged access to user systems.</td>
+                        <td class="category-cell bg-white" data-value="3">Possible reward, such as login credentials to low privileged users of applications with sensitive data.</td>
+                        <td class="category-cell bg-white" data-value="4">Potentially high rewared, such as admin credentials to critical assets or access to obfuscated sensistive data.</td>
+                        <td class="category-cell bg-white" data-value="5">High reward, such as direct access to critical or highly monetizable data.</td>
+                    </tr>
+                    <tr data-row="3">
+                        <td class="col-category" rowspan="2">Capability</td>
+                        <td class="col-subcategory">Detection & Prevention/ Anti-Detection</td>
+                        <td class="col-description">How likely will the threat be detected/prevented?</td>
+                        <td class="category-cell bg-white" data-value="1">Automated active detection and prevention; threat makes no attempt to evade detection.</td>
+                        <td class="category-cell bg-white" data-value="2">Automated active detection, manual prevention; threat utilizes some evasion techniques.</td>
+                        <td class="category-cell bg-white" data-value="3">Manual detection and prevention capabilities in place; threat utilizes living off the land or other difficult to detect techniques.</td>
+                        <td class="category-cell bg-white" data-value="4">Unlikely to be detected or prevented; combination of multiple evasion techniques without zero day.</td>
+                        <td class="category-cell bg-white" data-value="5">No first layer detection/prevention; zero day vulnerability utilized.</td>
+                    </tr>
+                    <tr data-row="4">
+                        <td class="col-subcategory">Threat Actor Capability</td>
+                        <td class="col-description">How capable does the threat need to be to complete the attack?</td>
+                        <td class="category-cell bg-white" data-value="1">Multi-faceted operation requiring coordinated elite-level capability.</td>
+                        <td class="category-cell bg-white" data-value="2">High difficulty requiring significant manual threat interaction.</td>
+                        <td class="category-cell bg-white" data-value="3">Moderate difficulty requiring some manual threat interaction.</td>
+                        <td class="category-cell bg-white" data-value="4">Moderate ease requiring little to no manual threat interaction.</td>
+                        <td class="category-cell bg-white" data-value="5">Automated tools available.</td>
+                    </tr>
+                    <tr data-row="5">
+                        <td class="col-category" rowspan="2">Opportunity</td>
+                        <td class="col-subcategory">Vulnerability Exposure</td>
+                        <td class="col-description">What is the exposure of verified vulnerability(ies) the threat is known to exploit?</td>
+                        <td class="category-cell bg-white" data-value="1">Organization does not and has never had the vulnerability(ies) nor any system/process potentially affected.</td>
+                        <td class="category-cell bg-white" data-value="2">Organization has remediated systems with potential vulnerability(ies); business processes established to prevent exploitation. Organization users are hardened against social engineering vectors.</td>
+                        <td class="category-cell bg-white" data-value="3">Small number of vulnerable systems on the internal network; social engineering vectors are hidden from potential attackers.</td>
+                        <td class="category-cell bg-white" data-value="4">Large number of vulnerable systems on the internal network; small number of vulnerable systems on the organization perimeter; social engineering vectors are publically accessible.</td>
+                        <td class="category-cell bg-white" data-value="5">Large number of (or high traffic systems) vulnerable on the organization perimeter; social engineering vectors are well known and available to the public.</td>
+                    </tr>
+                    <tr data-row="6">
+                        <td class="col-subcategory">Threat Attack Vector</td>
+                        <td class="col-description">What type of access does the threat require to be successful?</td>
+                        <td class="category-cell bg-white" data-value="1">Physical access to data center or network required.</td>
+                        <td class="category-cell bg-white" data-value="2">Remote access to ADP systems required.</td>
+                        <td class="category-cell bg-white" data-value="3">Social engineering required to gain access.</td>
+                        <td class="category-cell bg-white" data-value="4">Phishing or drive by download.</td>
+                        <td class="category-cell bg-white" data-value="5">Self propagation techniques in use; no access required.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <h2>Likelihood Score Table</h2>
-        <table id="scoreTable">
-            <thead>
-                <tr>
-                    <th colspan="6">Score Correlation</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Score</td>
-                    <td class="score-col-C">Score Range 6-9</td>
-                    <td class="score-col-D">Score Range 10-14</td>
-                    <td class="score-col-E">Score Range 15-19</td>
-                    <td class="score-col-F">Score Range 20-24</td>
-                    <td class="score-col-G">Score Range 25-30</td>
-                </tr>
-                <tr>
-                    <td>Estimative Language</td>
-                    <td class="score-col-C">Remote</td>
-                    <td class="score-col-D">Unlikely</td>
-                    <td class="score-col-E">Possible</td>
-                    <td class="score-col-F">Likely</td>
-                    <td class="score-col-G">Highly Probable</td>
-                </tr>
-                <tr>
-                    <td>Percentage Likelihood</td>
-                    <td class="score-col-C">0-3%</td>
-                    <td class="score-col-D">4-15%</td>
-                    <td class="score-col-E">16-40%</td>
-                    <td class="score-col-F">41-70%</td>
-                    <td class="score-col-G">71-100%</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="scoreTable">
+                <thead>
+                    <tr>
+                        <th colspan="6">Score Correlation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Score</td>
+                        <td class="score-col-C">Score Range 6-9</td>
+                        <td class="score-col-D">Score Range 10-14</td>
+                        <td class="score-col-E">Score Range 15-19</td>
+                        <td class="score-col-F">Score Range 20-24</td>
+                        <td class="score-col-G">Score Range 25-30</td>
+                    </tr>
+                    <tr>
+                        <td>Estimative Language</td>
+                        <td class="score-col-C">Remote</td>
+                        <td class="score-col-D">Unlikely</td>
+                        <td class="score-col-E">Possible</td>
+                        <td class="score-col-F">Likely</td>
+                        <td class="score-col-G">Highly Probable</td>
+                    </tr>
+                    <tr>
+                        <td>Percentage Likelihood</td>
+                        <td class="score-col-C">0-3%</td>
+                        <td class="score-col-D">4-15%</td>
+                        <td class="score-col-E">16-40%</td>
+                        <td class="score-col-F">41-70%</td>
+                        <td class="score-col-G">71-100%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <div id="totalImpactCell" class="text-center">
             Current Impact Score: <span id="totalImpactLanguage">N/A</span>
         </div>
 
         <h2>Impact Table</h2>
-        <table id="impactTable">
-            <thead>
-                <tr>
-                    <th class="col-category">Impact Metric</th>
-                    <th class="col-description">Description</th>
-                    <th>1</th>
-                    <th>2</th>
-                    <th>3</th>
-                    <th>4</th>
-                    <th>5</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr data-row="impact-1">
-                    <td class="col-category">Confidentiality</td>
-                    <td class="col-description">Unauthorized disclosure of information.</td>
-                    <td class="impact-cell bg-white" data-value="1">Minimal data exposure, no sensitive data.</td>
-                    <td class="impact-cell bg-white" data-value="2">Minor sensitive data exposure, limited impact.</td>
-                    <td class="impact-cell bg-white" data-value="3">Significant sensitive data exposure, moderate impact.</td>
-                    <td class="impact-cell bg-white" data-value="4">Major sensitive data exposure, severe impact.</td>
-                    <td class="impact-cell bg-white" data-value="5">Critical data breach, extreme impact.</td>
-                </tr>
-                <tr data-row="impact-2">
-                    <td class="col-category">Integrity</td>
-                    <td class="col-description">Unauthorized modification or destruction of information.</td>
-                    <td class="impact-cell bg-white" data-value="1">Minor data alteration, easily recoverable.</td>
-                    <td class="impact-cell bg-white" data-value="2">Limited data alteration, some manual recovery.</td>
-                    <td class="impact-cell bg-white" data-value="3">Significant data corruption, moderate recovery effort.</td>
-                    <td class="impact-cell bg-white" data-value="4">Major data corruption, difficult recovery.</td>
-                    <td class="impact-cell bg-white" data-value="5">Critical data integrity loss, severe impact.</td>
-                </tr>
-                <tr data-row="impact-3">
-                    <td class="col-category">Availability</td>
-                    <td class="col-description">Disruption of access to information or systems.</td>
-                    <td class="impact-cell bg-white" data-value="1">Brief, localized service interruption.</td>
-                    <td class="impact-cell bg-white" data-value="2">Minor service interruption, limited users affected.</td>
-                    <td class="impact-cell bg-white" data-value="3">Moderate service interruption, significant user impact.</td>
-                    <td class="impact-cell bg-white" data-value="4">Major service outage, critical systems affected.</td>
-                    <td class="impact-cell bg-white" data-value="5">Complete system failure, prolonged outage.</td>
-                </tr>
-                <tr data-row="impact-4">
-                    <td class="col-category">Financial</td>
-                    <td class="col-description">Monetary loss or impact on revenue.</td>
-                    <td class="impact-cell bg-white" data-value="1">Negligible financial loss.</td>
-                    <td class="impact-cell bg-white" data-value="2">Minor financial loss, easily absorbed.</td>
-                    <td class="impact-cell bg-white" data-value="3">Moderate financial loss, impacting department budget.</td>
-                    <td class="impact-cell bg-white" data-value="4">Significant financial loss, impacting company profits.</td>
-                    <td class="impact-cell bg-white" data-value="5">Severe financial loss, existential threat.</td>
-                </tr>
-                <tr data-row="impact-5">
-                    <td class="col-category">Reputation</td>
-                    <td class="col-description">Damage to public image or trust.</td>
-                    <td class="impact-cell bg-white" data-value="1">No noticeable reputational damage.</td>
-                    <td class="impact-cell bg-white" data-value="2">Minor negative publicity, quickly forgotten.</td>
-                    <td class="impact-cell bg-white" data-value="3">Moderate negative publicity, short-term trust erosion.</td>
-                    <td class="impact-cell bg-white" data-value="4">Significant reputational damage, long-term trust issues.</td>
-                    <td class="impact-cell bg-white" data-value="5">Catastrophic reputational damage, irreversible trust loss.</td>
-                </tr>
-                <tr data-row="impact-6">
-                    <td class="col-category">Non-compliance</td>
-                    <td class="col-description">Violation of laws, regulations, or policies.</td>
-                    <td class="impact-cell bg-white" data-value="1">Minor policy violation, no legal repercussions.</td>
-                    <td class="impact-cell bg-white" data-value="2">Low regulatory violation, minor fines possible.</td>
-                    <td class="impact-cell bg-white" data-value="3">Moderate regulatory violation, significant fines possible.</td>
-                    <td class="impact-cell bg-white" data-value="4">Major legal violation, severe fines or legal action.</td>
-                    <td class="impact-cell bg-white" data-value="5">Critical legal violation, business-ending penalties.</td>
-                </tr>
-                <tr data-row="impact-7">
-                    <td class="col-category">Privacy</td>
-                    <td class="col-description">Unauthorized access to or misuse of personal data.</td>
-                    <td class="impact-cell bg-white" data-value="1">No personal data involved.</td>
-                    <td class="impact-cell bg-white" data-value="2">Minor personal data exposure, non-identifiable.</td>
-                    <td class="impact-cell bg-white" data-value="3">Moderate personal data exposure, some identifiable data.</td>
-                    <td class="impact-cell bg-white" data-value="4">Significant personal data exposure, highly identifiable.</td>
-                    <td class="impact-cell bg-white" data-value="5">Massive personal data breach, severe privacy impact.</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="impactTable">
+                <thead>
+                    <tr>
+                        <th class="col-category">Impact Metric</th>
+                        <th class="col-description">Description</th>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-row="impact-1">
+                        <td class="col-category">Confidentiality</td>
+                        <td class="col-description">Unauthorized disclosure of information.</td>
+                        <td class="impact-cell bg-white" data-value="1">Minimal data exposure, no sensitive data.</td>
+                        <td class="impact-cell bg-white" data-value="2">Minor sensitive data exposure, limited impact.</td>
+                        <td class="impact-cell bg-white" data-value="3">Significant sensitive data exposure, moderate impact.</td>
+                        <td class="impact-cell bg-white" data-value="4">Major sensitive data exposure, severe impact.</td>
+                        <td class="impact-cell bg-white" data-value="5">Critical data breach, extreme impact.</td>
+                    </tr>
+                    <tr data-row="impact-2">
+                        <td class="col-category">Integrity</td>
+                        <td class="col-description">Unauthorized modification or destruction of information.</td>
+                        <td class="impact-cell bg-white" data-value="1">Minor data alteration, easily recoverable.</td>
+                        <td class="impact-cell bg-white" data-value="2">Limited data alteration, some manual recovery.</td>
+                        <td class="impact-cell bg-white" data-value="3">Significant data corruption, moderate recovery effort.</td>
+                        <td class="impact-cell bg-white" data-value="4">Major data corruption, difficult recovery.</td>
+                        <td class="impact-cell bg-white" data-value="5">Critical data integrity loss, severe impact.</td>
+                    </tr>
+                    <tr data-row="impact-3">
+                        <td class="col-category">Availability</td>
+                        <td class="col-description">Disruption of access to information or systems.</td>
+                        <td class="impact-cell bg-white" data-value="1">Brief, localized service interruption.</td>
+                        <td class="impact-cell bg-white" data-value="2">Minor service interruption, limited users affected.</td>
+                        <td class="impact-cell bg-white" data-value="3">Moderate service interruption, significant user impact.</td>
+                        <td class="impact-cell bg-white" data-value="4">Major service outage, critical systems affected.</td>
+                        <td class="impact-cell bg-white" data-value="5">Complete system failure, prolonged outage.</td>
+                    </tr>
+                    <tr data-row="impact-4">
+                        <td class="col-category">Financial</td>
+                        <td class="col-description">Monetary loss or impact on revenue.</td>
+                        <td class="impact-cell bg-white" data-value="1">Negligible financial loss.</td>
+                        <td class="impact-cell bg-white" data-value="2">Minor financial loss, easily absorbed.</td>
+                        <td class="impact-cell bg-white" data-value="3">Moderate financial loss, impacting department budget.</td>
+                        <td class="impact-cell bg-white" data-value="4">Significant financial loss, impacting company profits.</td>
+                        <td class="impact-cell bg-white" data-value="5">Severe financial loss, existential threat.</td>
+                    </tr>
+                    <tr data-row="impact-5">
+                        <td class="col-category">Reputation</td>
+                        <td class="col-description">Damage to public image or trust.</td>
+                        <td class="impact-cell bg-white" data-value="1">No noticeable reputational damage.</td>
+                        <td class="impact-cell bg-white" data-value="2">Minor negative publicity, quickly forgotten.</td>
+                        <td class="impact-cell bg-white" data-value="3">Moderate negative publicity, short-term trust erosion.</td>
+                        <td class="impact-cell bg-white" data-value="4">Significant reputational damage, long-term trust issues.</td>
+                        <td class="impact-cell bg-white" data-value="5">Catastrophic reputational damage, irreversible trust loss.</td>
+                    </tr>
+                    <tr data-row="impact-6">
+                        <td class="col-category">Non-compliance</td>
+                        <td class="col-description">Violation of laws, regulations, or policies.</td>
+                        <td class="impact-cell bg-white" data-value="1">Minor policy violation, no legal repercussions.</td>
+                        <td class="impact-cell bg-white" data-value="2">Low regulatory violation, minor fines possible.</td>
+                        <td class="impact-cell bg-white" data-value="3">Moderate regulatory violation, significant fines possible.</td>
+                        <td class="impact-cell bg-white" data-value="4">Major legal violation, severe fines or legal action.</td>
+                        <td class="impact-cell bg-white" data-value="5">Critical legal violation, business-ending penalties.</td>
+                    </tr>
+                    <tr data-row="impact-7">
+                        <td class="col-category">Privacy</td>
+                        <td class="col-description">Unauthorized access to or misuse of personal data.</td>
+                        <td class="impact-cell bg-white" data-value="1">No personal data involved.</td>
+                        <td class="impact-cell bg-white" data-value="2">Minor personal data exposure, non-identifiable.</td>
+                        <td class="impact-cell bg-white" data-value="3">Moderate personal data exposure, some identifiable data.</td>
+                        <td class="impact-cell bg-white" data-value="4">Significant personal data exposure, highly identifiable.</td>
+                        <td class="impact-cell bg-white" data-value="5">Massive personal data breach, severe privacy impact.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <h2>Impact Score Table</h2>
-        <table id="impactScoreTable">
-            <thead>
-                <tr>
-                    <th colspan="6">Impact Score Correlation</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Score</td>
-                    <td class="impact-score-col-A">1-7</td>
-                    <td class="impact-score-col-B">8-14</td>
-                    <td class="impact-score-col-C">15-21</td>
-                    <td class="impact-score-col-D">22-28</td>
-                    <td class="impact-score-col-E">29-35</td>
-                </tr>
-                <tr>
-                    <td>Impact Level</td>
-                    <td class="impact-score-col-A">Insignificant</td>
-                    <td class="impact-score-col-B">Minor</td>
-                    <td class="impact-score-col-C">Material</td>
-                    <td class="impact-score-col-D">Major</td>
-                    <td class="impact-score-col-E">Extreme</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="impactScoreTable">
+                <thead>
+                    <tr>
+                        <th colspan="6">Impact Score Correlation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Score</td>
+                        <td class="impact-score-col-A">1-7</td>
+                        <td class="impact-score-col-B">8-14</td>
+                        <td class="impact-score-col-C">15-21</td>
+                        <td class="impact-score-col-D">22-28</td>
+                        <td class="impact-score-col-E">29-35</td>
+                    </tr>
+                    <tr>
+                        <td>Impact Level</td>
+                        <td class="impact-score-col-A">Insignificant</td>
+                        <td class="impact-score-col-B">Minor</td>
+                        <td class="impact-score-col-C">Material</td>
+                        <td class="impact-score-col-D">Major</td>
+                        <td class="impact-score-col-E">Extreme</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <h2>Risk Matrix Heatmap</h2>
         <div id="heatmapContainer">
